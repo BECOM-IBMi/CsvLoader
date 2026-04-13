@@ -2,94 +2,112 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 jobs:
-  build-release:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+      assemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}
+      assemblySemFileVer: ${{ steps.gitversion.outputs.assemblySemFileVer }}
+      informationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3
+        with:
+          versionSpec: '6.x'
+
+      - name: Determine version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3
+
+  build:
+    needs: version
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-13
+            rid: osx-x64
     runs-on: ${{ matrix.os }}
-    
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3
-      with:
-        versionSpec: '6.x'
-    
-    - name: Determine version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v3
-    
-    - name: Setup .NET 10
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.x'
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-    
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
-    
-    - name: Publish (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        dotnet publish src/CsvLoader/CsvLoader.csproj `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained true `
-          -p:PublishSingleFile=true `
-          -p:VersionPrefix=${{ steps.gitversion.outputs.MajorMinorPatch }} `
-          -o publish/win-x64
-    
-    - name: Publish (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        dotnet publish src/CsvLoader/CsvLoader.csproj \
-          --configuration Release \
-          --runtime linux-x64 \
-          --self-contained true \
-          -p:PublishSingleFile=true \
-          -p:VersionPrefix=${{ steps.gitversion.outputs.MajorMinorPatch }} \
-          -o publish/linux-x64
-    
-    - name: Upload artifact (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: csvloader-win-x64
-        path: publish/win-x64/
-    
-    - name: Upload artifact (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: csvloader-linux-x64
-        path: publish/linux-x64/
-  
-  create-release:
-    needs: build-release
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      - name: Publish
+        run: >-
+          dotnet publish src/CsvLoader/CsvLoader.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:Version=${{ needs.version.outputs.semVer }}
+          -p:AssemblyVersion=${{ needs.version.outputs.assemblySemVer }}
+          -p:FileVersion=${{ needs.version.outputs.assemblySemFileVer }}
+          -p:InformationalVersion="${{ needs.version.outputs.informationalVersion }}"
+          -o publish/${{ matrix.rid }}
+
+      - name: Zip artifact (Windows)
+        if: runner.os == 'Windows'
+        run: >-
+          Compress-Archive
+          -Path publish\${{ matrix.rid }}\SqlApiCli.exe
+          -DestinationPath SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.zip
+
+      - name: Zip artifact (Unix)
+        if: runner.os != 'Windows'
+        run: >-
+          zip SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.zip
+          -j publish/${{ matrix.rid }}/SqlApiCli
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}
+          path: SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.zip
+
+  release:
+    needs: [version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
-    - uses: actions/download-artifact@v4
-    
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          csvloader-win-x64/*
-          csvloader-linux-x64/*
-        draft: false
-        prerelease: false
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.semVer }}
+          name: v${{ needs.version.outputs.semVer }}
+          files: artifacts/*.zip
+          generate_release_notes: true
