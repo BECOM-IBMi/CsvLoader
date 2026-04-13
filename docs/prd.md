@@ -1,4 +1,4 @@
-# Product Requirements Document — CsvLoader
+# Product Requirements Document — SqlApiCli
 
 **Version**: 1.0  
 **Date**: 2026-03-27  
@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-CsvLoader is a .NET 10 command-line tool that executes a SQL statement against an IBM i SQL API endpoint and writes the result as a semicolon-delimited CSV file. It is designed for automation pipelines, scheduled jobs, and developer workflows where data extraction needs to be scriptable and composable with other CLI tools.
+SqlApiCli is a .NET 10 command-line tool that executes a SQL statement against an IBM i SQL API endpoint and writes the result as a semicolon-delimited CSV file. It is designed for automation pipelines, scheduled jobs, and developer workflows where data extraction needs to be scriptable and composable with other CLI tools.
 
 ---
 
@@ -34,7 +34,7 @@ CsvLoader is a .NET 10 command-line tool that executes a SQL statement against a
 | US-01 | Developer | Pass an inline SQL string via a CLI flag | I can run quick ad-hoc queries without creating a file |
 | US-02 | Developer | Point the tool at a `.sql` or `.txt` file | I can manage complex queries in version-controlled files |
 | US-03 | Automation engineer | Specify the output folder and filename separately | I can place files exactly where pipelines expect them |
-| US-04 | Automation engineer | Pipe CSV output to another process via stdout | I can compose CsvLoader with downstream tools without touching disk |
+| US-04 | Automation engineer | Pipe CSV output to another process via stdout | I can compose SqlApiCli with downstream tools without touching disk |
 | US-05 | Developer | Store connection settings in `appsettings.json` | I don't have to repeat endpoint/credentials on every invocation |
 | US-06 | CI/CD operator | Override any config value via CLI args | Credentials are never stored in config files in production |
 | US-07 | Developer | See colored, clear error messages | I can diagnose failures quickly without reading raw stack traces |
@@ -97,7 +97,7 @@ CsvLoader is a .NET 10 command-line tool that executes a SQL statement against a
 ## 6. CLI Reference
 
 ```
-csvloader -q <sql|file> [options]
+sqlapicli -q <sql|file> [options]
 
 Arguments:
   -q, --query <sql|file>     Required. Inline SQL string or path to a .sql/.txt file.
@@ -122,16 +122,16 @@ General:
 
 ```sh
 # Inline query to current directory, default filename
-csvloader -q "SELECT * FROM MYLIB.ORDERS WHERE STATUS = 'OPEN'"
+sqlapicli -q "SELECT * FROM MYLIB.ORDERS WHERE STATUS = 'OPEN'"
 
 # Query from file, specific output path
-csvloader -q ./queries/orders.sql -o ./exports -n orders_export.csv
+sqlapicli -q ./queries/orders.sql -o ./exports -n orders_export.csv
 
 # Pipe to another tool (e.g., csvkit)
-csvloader -q "SELECT * FROM MYLIB.ORDERS" --stdout | csvstat
+sqlapicli -q "SELECT * FROM MYLIB.ORDERS" --stdout | csvstat
 
 # Override only credentials; endpoint comes from appsettings.json
-csvloader -q ./query.sql -u produser -p s3cr3t
+sqlapicli -q ./query.sql -u produser -p s3cr3t
 ```
 
 ---

@@ -1,11 +1,11 @@
-# CsvLoader
+# SqlApiCli
 
 A .NET 10 CLI tool that queries an IBM i SQL API and saves the result as a semicolon-delimited CSV file.
 
 ## Usage
 
 ```
-csvloader -q <sql|file> [options]
+sqlapicli -q <sql|file> [options]
 
 Options:
   -q, --query <query> (REQUIRED)  SQL string or path to a .sql/.txt file
@@ -24,19 +24,19 @@ Options:
 
 ```sh
 # Inline query, default output file in current directory
-csvloader -q "SELECT * FROM MYLIB.ORDERS WHERE STATUS = 'OPEN'"
+sqlapicli -q "SELECT * FROM MYLIB.ORDERS WHERE STATUS = 'OPEN'"
 
 # Query from file, specific folder and filename
-csvloader -q ./queries/orders.sql -o ./exports -n orders.csv
+sqlapicli -q ./queries/orders.sql -o ./exports -n orders.csv
 
 # Pipe to another tool
-csvloader -q "SELECT * FROM MYLIB.ORDERS" --stdout | csvstat
+sqlapicli -q "SELECT * FROM MYLIB.ORDERS" --stdout | csvstat
 
 # Override credentials; endpoint comes from appsettings.json
-csvloader -q ./query.sql -u produser -p s3cr3t
+sqlapicli -q ./query.sql -u produser -p s3cr3t
 
 # Verbose mode (logs to stderr)
-csvloader -q "SELECT 1 FROM SYSIBM.SYSDUMMY1" -v
+sqlapicli -q "SELECT 1 FROM SYSIBM.SYSDUMMY1" -v
 ```
 
 ## Configuration

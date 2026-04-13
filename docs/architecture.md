@@ -1,4 +1,4 @@
-# CsvLoader — Solution Architecture
+# SqlApiCli — Solution Architecture
 
 **Version**: 1.0
 **Author**: Luke (Lead)

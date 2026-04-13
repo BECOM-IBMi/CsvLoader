@@ -52,7 +52,7 @@ public static class RootCommandBuilder
             Description = "Enable verbose logging (debug level)."
         };
 
-        var rootCommand = new RootCommand("CsvLoader - query IBM i SQL API and export to CSV");
+        var rootCommand = new RootCommand("SqlApiCli - query IBM i SQL API and export to CSV");
         rootCommand.Add(queryOption);
         rootCommand.Add(outputOption);
         rootCommand.Add(nameOption);

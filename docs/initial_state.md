@@ -1,4 +1,4 @@
-# CsvLoader - Tool to download CSV Files
+# SqlApiCli - SQL API CLI Tool
 
 A .NET 10 command-line tool that queries an IBM i SQL API and saves the result as a CSV file or pipes it to stdout.
 

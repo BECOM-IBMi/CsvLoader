@@ -48,11 +48,11 @@ jobs:
           -o publish
 
       - name: Zip artifact
-        run: Compress-Archive -Path publish\CsvLoader.exe -DestinationPath CsvLoader-${{ steps.gitversion.outputs.semVer }}-win-x64.zip
+        run: Compress-Archive -Path publish\SqlApiCli.exe -DestinationPath SqlApiCli-${{ steps.gitversion.outputs.semVer }}-win-x64.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.gitversion.outputs.semVer }}
           name: v${{ steps.gitversion.outputs.semVer }}
-          files: CsvLoader-${{ steps.gitversion.outputs.semVer }}-win-x64.zip
+          files: SqlApiCli-${{ steps.gitversion.outputs.semVer }}-win-x64.zip

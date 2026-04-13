@@ -15,19 +15,9 @@ primary
 lastDtbSucceeded
 
 [properties]
-AssemblyName=CsvLoader
-CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE
-CompilerGeneratedFilesOutputPath=
-MaxSupportedLangVersion=14.0
-ProjectAssetsFile=<PATH>obj/project.assets.json
-RootNamespace=CsvLoader
-RunAnalyzers=
-RunAnalyzersDuringLiveAnalysis=
-SolutionPath=<PATH>../../CsvLoader.slnx
-TargetFrameworkIdentifier=.NETCoreApp
-TargetPath=<PATH>bin/Debug/net10.0/win-x64/CsvLoader.dll
-TargetRefPath=<PATH>obj/Debug/net10.0/win-x64/ref/CsvLoader.dll
-TemporaryDependencyNodeTargetIdentifier=net10.0
+AssemblyName=SqlApiCli
+TargetPath=<PATH>bin/Debug/net10.0/win-x64/SqlApiCli.dll
+TargetRefPath=<PATH>obj/Debug/net10.0/win-x64/ref/SqlApiCli.dll
 
 [commandLineArguments]
 /noconfig
@@ -47,8 +37,8 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net10.0\win-x64\CsvLoader.dll
-/refout:obj\Debug\net10.0\win-x64\refint\CsvLoader.dll
+/out:obj\Debug\net10.0\win-x64\SqlApiCli.dll
+/refout:obj\Debug\net10.0\win-x64\refint\SqlApiCli.dll
 /target:exe
 /warnaserror-
 /utf8output
