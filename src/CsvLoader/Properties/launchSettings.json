@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CsvLoader": {
+      "commandName": "Project",
+      "commandLineArgs": "-q \"SELECT TABLE_TYPE FROM QSYS2.SYSTABLES WHERE TABLE_SCHEMA = 'AC' AND TABLE_NAME = 'REPORT_DEF'\""
+    }
+  }
+}

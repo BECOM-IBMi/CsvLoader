@@ -1,10 +1,9 @@
-using System.CommandLine;
-using System.CommandLine.Parsing;
 using CsvLoader.Exceptions;
 using CsvLoader.Services;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Spectre.Console;
+using System.CommandLine;
 
 namespace CsvLoader.Commands;
 
@@ -72,14 +71,14 @@ public static class RootCommandBuilder
 
         rootCommand.SetAction(async (ParseResult parseResult) =>
         {
-            var query     = parseResult.GetValue(queryOption)!;
-            var output    = parseResult.GetValue(outputOption);
-            var name      = parseResult.GetValue(nameOption);
+            var query = parseResult.GetValue(queryOption)!;
+            var output = parseResult.GetValue(outputOption);
+            var name = parseResult.GetValue(nameOption);
             var useStdout = parseResult.GetValue(stdoutOption);
-            var endpoint  = parseResult.GetValue(endpointOption);
-            var username  = parseResult.GetValue(usernameOption);
-            var password  = parseResult.GetValue(passwordOption);
-            var verbose   = parseResult.GetValue(verboseOption);
+            var endpoint = parseResult.GetValue(endpointOption);
+            var username = parseResult.GetValue(usernameOption);
+            var password = parseResult.GetValue(passwordOption);
+            var verbose = parseResult.GetValue(verboseOption);
 
             try
             {

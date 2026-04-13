@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using Becom.IBMi.SqlApiClient.Models.Configuration;
 using Becom.IBMi.SqlApiClient.Services;
@@ -86,7 +88,7 @@ public sealed class QueryService
         }
         else
         {
-            var folder   = outputFolder ?? Directory.GetCurrentDirectory();
+            var folder = outputFolder ?? Directory.GetCurrentDirectory();
             var filename = outputName ?? $"data_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
             var fullPath = Path.Combine(folder, filename);
 
@@ -112,14 +114,23 @@ public sealed class QueryService
     {
         var config = new EndpointConfiguration
         {
-            Api      = endpoint,
-            Uname    = username,
+            Api = endpoint,
+            Uname = username,
             Password = password
         };
 
         try
         {
-            using var httpClient = new HttpClient();
+            var base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
+
+            using var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(config.Api),
+                Timeout = TimeSpan.FromSeconds(20),
+            };
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            
             var api = new IBMiSQLApi(httpClient, config);
             return await api.ExecuteSQLStatementAsync(sql);
         }
