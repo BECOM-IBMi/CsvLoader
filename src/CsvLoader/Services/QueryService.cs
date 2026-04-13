@@ -156,6 +156,10 @@ public sealed class QueryService
     /// </summary>
     private static (string[] columnNames, List<Dictionary<string, string?>> rows) ParseJsonResponse(string json)
     {
+        var trimmed = json.AsSpan().Trim();
+        if (trimmed.IsEmpty || (trimmed[0] != '{' && trimmed[0] != '['))
+            throw new SqlExecutionException($"SQL API returned an error: {json}");
+
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
