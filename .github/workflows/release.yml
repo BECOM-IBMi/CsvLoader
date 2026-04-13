@@ -36,8 +36,6 @@ jobs:
             rid: win-x64
           - os: ubuntu-latest
             rid: linux-x64
-          - os: macos-13
-            rid: osx-x64
     runs-on: ${{ matrix.os }}
 
     steps:
