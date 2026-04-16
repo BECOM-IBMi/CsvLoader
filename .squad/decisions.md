@@ -159,6 +159,15 @@
 - **CsvLoader.slnx** (modern format) references src/CsvLoader/CsvLoader.csproj
 - **Rationale**: IDE convenience; workflows use project paths explicitly
 
+### ADR-011: Interactive Password Prompt When Password Is Missing
+- **Status**: Active
+- **Author**: Luke (Lead)
+- **Date**: 2026-07-16
+- **Context**: If no password is found after CLI-arg + config merge, `QueryService.ExecuteAsync()` threw `ConnectionException` (exit 2). The ask: prompt the user interactively before failing.
+- **Decision**: Add `PasswordPrompter` static helper called after the config-merge step. In interactive terminals it shows a masked `TextPrompt<string>.Secret()` via Spectre.Console. In non-interactive/CI environments it returns `null` and the existing exit-2 path fires unchanged.
+- **Design**: `if (string.IsNullOrWhiteSpace(password)) password = PasswordPrompter.Prompt(_errorConsole);` inserted in `QueryService.ExecuteAsync()` after the merge line. Prompt goes to `_errorConsole` (stderr) — stdout never polluted (FR-08 preserved). No new dependencies; Spectre.Console already in stack.
+- **Consequences**: Interactive users always get a chance to enter a password. CI/pipe environments are unaffected (exit 2 as before). Minimal blast radius: 1 new file, 2 lines in `QueryService`.
+
 ## Governance
 
 - All meaningful changes require team consensus
