@@ -16,8 +16,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // Build configuration: appsettings.json + user-secrets (CLI args override at service layer)
+// Use the application directory (not current working directory) for appsettings.json
+// so it works correctly when invoked from different directories (e.g., tests)
+var appDirectory = AppContext.BaseDirectory;
 var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
+    .SetBasePath(appDirectory)
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     .AddUserSecrets<Program>(optional: true)
     .Build();
