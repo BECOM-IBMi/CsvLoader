@@ -9,3 +9,5 @@ active_issues: []
 Initial build is complete. CsvLoader v1 shipped with full CI/CD pipeline (ci.yml + release.yml), xUnit test suite, and all FR-01–FR-25 covered.
 
 **ADR-011 shipped (2026-07-16):** Interactive password prompt feature is complete. When no password is found after CLI-arg + config merge, `PasswordPrompter.Prompt()` now prompts the user in interactive terminals (masked input via Spectre.Console). Non-interactive/CI environments are unaffected — exit 2 fires as before. 41/41 unit tests pass.
+
+**ADR-012 shipped (2026-07-16):** Optional `--timeout` / `-t` CLI parameter implemented. Allows users to override HTTP request timeout (default 20s) via CLI arg or `CsvLoader:Timeout` config key. Precedence: CLI > appsettings > default 20s. Validation: positive integers only. Both timeout surfaces (`EndpointConfiguration.Timeout` and `HttpClient.Timeout`) kept in sync. 45/45 unit tests pass.

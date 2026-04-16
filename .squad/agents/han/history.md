@@ -20,6 +20,32 @@
 
 ## Learnings
 
+### 2026-07-16 — `--timeout` / `-t` CLI parameter (ADR-012)
+
+**What was built:**
+- `RootCommandBuilder.cs` — Added `timeoutOption` (`Option<int?>`, `--timeout`/`-t`), registered with `rootCommand.Add(...)`, validator rejects `<= 0`, extracted in handler, passed to `service.ExecuteAsync`.
+- `QueryService.cs` — Added `int? timeoutArg` to `ExecuteAsync` (before `verbose`), resolved via `timeoutArg ?? (int.TryParse(config["CsvLoader:Timeout"]) ? cfgTimeout : 20)`, added `_logger.Debug("Resolved timeout: {Timeout}s", timeoutSeconds)` in the verbose block, passed `timeoutSeconds` to `CallApiAsync`.  `CallApiAsync` now sets both `EndpointConfiguration.Timeout = timeoutSeconds` and `HttpClient.Timeout = TimeSpan.FromSeconds(timeoutSeconds)`; removed hardcoded 20.
+- `appsettings.json` — Added `"Timeout": 20` inside `CsvLoader` section.
+
+**Key patterns:**
+- `int?` nullable: absence means "not set, use default".
+- Precedence: CLI arg > `CsvLoader:Timeout` in config > hardcoded 20.
+- Both `EndpointConfiguration.Timeout` and `HttpClient.Timeout` must be set consistently (library may reconfigure the client internally).
+- `-t` alias confirmed free (existing: `-q`, `-o`, `-n`, `-e`, `-u`, `-p`, `-v`).
+
+### 2026-07-16 — Interactive password prompt (ADR-011)
+
+**What was built:**
+- `src/CsvLoader/Services/PasswordPrompter.cs` — new static class; `Prompt(IAnsiConsole)` checks `console.Profile.Capabilities.Interactive`, returns `null` in non-interactive environments (preserves exit-2 behaviour), otherwise uses `TextPrompt<string>.Secret()` with validation loop.
+- `QueryService.cs` — 2-line insertion after the `password =` config-merge line; calls `PasswordPrompter.Prompt(_errorConsole)` only when password is still null/empty.
+
+**Key patterns:**
+- `_errorConsole` (stderr-bound) used for the prompt — stdout stays pure per FR-08.
+- `TextPrompt.Validate` loops on empty input inside Spectre.Console; no extra loop logic needed in service.
+- `OperationCanceledException` (Ctrl+C during prompt) propagates to top-level handler → exit 99 (acceptable).
+
+**No new NuGet dependencies** — Spectre.Console already in stack.
+
 ### 2026-03-27 — Initial scaffold and full implementation
 
 **What was built:**
@@ -46,16 +72,23 @@
 - Parse errors route via `InvocationConfiguration.Error = Console.Error` rather than console override on `InvokeAsync`.
 - Config precedence note: user-secrets is actually LOWER precedence than appsettings.json in the standard stack (it's a dev convenience, not an override). Added after appsettings.
 
+### 2026-07-16 — `--timeout` / `-t` CLI parameter (ADR-012)
+
+**What was built:**
+- `RootCommandBuilder.cs` — Added `timeoutOption` (`Option<int?>`, `--timeout`/`-t`), registered with `rootCommand.Add(...)`, validator rejects `<= 0`, extracted in handler, passed to `service.ExecuteAsync`.
+- `QueryService.cs` — Added `int? timeoutArg` to `ExecuteAsync` (before `verbose`), resolved via `timeoutArg ?? (int.TryParse(config["CsvLoader:Timeout"]) ? cfgTimeout : 20)`, added `_logger.Debug("Resolved timeout: {Timeout}s", timeoutSeconds)` in the verbose block, passed `timeoutSeconds` to `CallApiAsync`.  `CallApiAsync` now sets both `EndpointConfiguration.Timeout = timeoutSeconds` and `HttpClient.Timeout = TimeSpan.FromSeconds(timeoutSeconds)`; removed hardcoded 20.
+- `appsettings.json` — Added `"Timeout": 20` inside `CsvLoader` section.
+
+**Key patterns:**
+- `int?` nullable: absence means "not set, use default".
+- Precedence: CLI arg > `CsvLoader:Timeout` in config > hardcoded 20.
+- Both `EndpointConfiguration.Timeout` and `HttpClient.Timeout` must be set consistently (library may reconfigure the client internally).
+- `-t` alias confirmed free (existing: `-q`, `-o`, `-n`, `-e`, `-u`, `-p`, `-v`).
+
 ## Cross-Agent Updates
 
-### From Leia (2026-03-27)
-✅ **Test suite complete**: 61 tests (35 unit passing, 26 integration ready). Your code is the acceptance spec — it must pass all reference implementation tests. Key areas covered:
-- Exit codes (FR-01 to FR-04, FR-20, FR-21)
-- Config merging & precedence (FR-12, FR-13, FR-14)
-- CSV formatting (FR-15–18)
-- Stdout/file modes (FR-04–10)
-- Error handling (FR-19, FR-22)
-Tests use [Trait("Category", "Integration")] gate; CI runs non-integration only via `dotnet test --filter "Category!=Integration"`.
+### From Luke (2026-07-16)
+✅ **Design complete**: ADR-012 architecture decision provides clear 3-layer precedence for timeout. Validation: positive integers only. Ready for implementation.
 
-### From Wedge (2026-03-27)
-✅ **CI pipeline live**: `.github/workflows/ci.yml` and `release.yml` ready. Your project path `src/CsvLoader/CsvLoader.csproj` is hardcoded in workflows. Build/publish confirmed locally on Windows. Both workflows live on GitHub Actions; initial CI run pending tag/merge.
+### From Leia (2026-07-16)
+✅ **Tests complete**: 7 new timeout tests (4 unit + 3 integration). 45/45 total tests pass. Precedence and validation both validated. Feature ready to ship.

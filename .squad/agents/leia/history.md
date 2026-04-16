@@ -66,10 +66,129 @@ All 25 functional requirements from the PRD need test coverage:
 - `Moq` 4.20.72
 - `Microsoft.Extensions.Configuration` 10.0.5
 
+### Session: Interactive Password Prompt Tests (2026-07-16)
+
+**What was built:**
+- 6 new tests across 2 new files covering ADR-011 (interactive password prompt)
+- `PasswordPrompterTests.cs` — 2 unit tests against `ReferencePasswordPrompter` spec implementation
+- `QueryServicePasswordTests.cs` — 4 integration tests against the actual `QueryService`
+- `ReferencePasswordPrompter` added to `ReferenceImplementations.cs`
+- **Total: 41 non-integration tests, all green**
+
+**Infrastructure changes made:**
+- Added `NSubstitute 5.3.0` to test project (ADR-008 requirement, was missing)
+- Added `Serilog 4.3.1` to test project (needed to instantiate NullLogger for QueryService ctor)
+- Added `Spectre.Console.Testing 0.54.0` to test project (for TestConsoleInput if needed)
+- Added `ProjectReference` from test project to production project (enables QueryService integration tests)
+- Added `<InternalsVisibleTo Include="CsvLoader.Tests" />` to production csproj (test infrastructure)
+
+**Key discovery: Han had already implemented the feature!**
+`PasswordPrompter.cs` and `QueryService` changes existed in the production code. All tests passed immediately — the suite validates the completed implementation rather than serving as pre-implementation TDD.
+
+**Critical Spectre.Console 0.54.0 pattern for mocking `IAnsiConsole` with prompts:**
+NSubstitute cannot easily mock `TestConsole` → `TextPrompt.ShowAsync()` calls `console.ExclusivityMode.RunAsync(func)`. NSubstitute substitutes' default behaviour does NOT call `func`, so `TextPrompt.Show()` returns empty string. The fix: also substitute `IExclusivityMode` and configure it to actually invoke the func:
+```csharp
+var mockExclusivity = Substitute.For<IExclusivityMode>();
+mockExclusivity.RunAsync(Arg.Any<Func<Task<string>>>())
+    .Returns(ci => ci.Arg<Func<Task<string>>>()());
+mockConsole.ExclusivityMode.Returns(mockExclusivity);
+```
+Then mock `IAnsiConsoleInput.ReadKeyAsync(bool, CancellationToken)` to feed the key sequence.
+
+**Test strategy for password prompt QueryService integration:**
+- Non-interactive console + no password → ConnectionException mentions "password" (regression guard)
+- Interactive console + no password → ConnectionException mentions "endpoint" only, NOT "password" (proves prompt was used and password was resolved from it)
+- Password present in config → exception mentions "endpoint" only, NOT "password" (proves prompt was NOT triggered)
+- Password present as CLI arg → same pattern as config case (CLI arg takes precedence, no prompt)
+
+### Session: Timeout Parameter Tests (2026-07-16)
+
+**What was built:**
+- 4 new unit tests in `QueryServiceTimeoutTests.cs` covering ADR-012 timeout resolution
+- 3 new integration tests in `TimeoutValidationTests.cs` for parse-time validation (exit code 1)
+- Updated `QueryServicePasswordTests.cs` — added `timeoutArg: null` to all `ExecuteAsync` calls for forward compat
+- **Total: 45 non-integration tests, all green**
+
+**FR/ADR coverage added:**
+
+| Test File | ADR/FR Covered | Strategy |
+|---|---|---|
+| `QueryServiceTimeoutTests.cs` | ADR-012 §3 (precedence) | Unit — CapturingSink captures verbose log, asserts "Resolved timeout: Xs" |
+| `TimeoutValidationTests.cs` | ADR-012 §4 (validator) | Integration — spawns CLI binary |
+
+**Key discovery: Han had already implemented ADR-012!**
+`QueryService.cs` already had `int? timeoutArg` + resolution logic + verbose log. All 4 unit tests passed immediately.
+
+**CapturingSink pattern for Serilog in tests:**
+When you need to assert on *what* was logged (e.g. resolved values in verbose mode), create an inline `ILogEventSink` that captures to a `List<LogEvent>`:
+```csharp
+private sealed class CapturingSink : ILogEventSink
+{
+    private readonly List<LogEvent> _events;
+    public CapturingSink(List<LogEvent> events) => _events = events;
+    public void Emit(LogEvent logEvent) => _events.Add(logEvent);
+}
+// In test: logEvents.Should().Contain(e => e.RenderMessage().Contains("Resolved timeout: 20s"));
+```
+Pass `verbose: true` + leave endpoint missing → verbose log fires → `ConnectionException` fires → assert log content.
+
+**Packages already available (no additions needed):**
+- `Serilog 4.3.1` — provides `ILogEventSink`, `LogEvent`, `RenderMessage()`
+
+**ExecuteAsync parameter evolution:**
+After ADR-012, the signature is:
+```csharp
+ExecuteAsync(query, outputFolder, outputName, useStdout,
+             endpointArg, usernameArg, passwordArg, timeoutArg, verbose)
+```
+All call sites in tests now include `timeoutArg: null` explicitly to prevent silent breakage on future parameter additions.
+
+### Session: Timeout Parameter Tests (2026-07-16)
+
+**What was built:**
+- 4 new unit tests in `QueryServiceTimeoutTests.cs` covering ADR-012 timeout resolution
+- 3 new integration tests in `TimeoutValidationTests.cs` for parse-time validation (exit code 1)
+- Updated `QueryServicePasswordTests.cs` — added `timeoutArg: null` to all `ExecuteAsync` calls for forward compat
+- **Total: 45 non-integration tests, all green**
+
+**FR/ADR coverage added:**
+
+| Test File | ADR/FR Covered | Strategy |
+|---|---|---|
+| `QueryServiceTimeoutTests.cs` | ADR-012 §3 (precedence) | Unit — CapturingSink captures verbose log, asserts "Resolved timeout: Xs" |
+| `TimeoutValidationTests.cs` | ADR-012 §4 (validator) | Integration — spawns CLI binary |
+
+**Key discovery: Han had already implemented ADR-012!**
+`QueryService.cs` already had `int? timeoutArg` + resolution logic + verbose log. All 4 unit tests passed immediately.
+
+**CapturingSink pattern for Serilog in tests:**
+When you need to assert on *what* was logged (e.g. resolved values in verbose mode), create an inline `ILogEventSink` that captures to a `List<LogEvent>`:
+```csharp
+private sealed class CapturingSink : ILogEventSink
+{
+    private readonly List<LogEvent> _events;
+    public CapturingSink(List<LogEvent> events) => _events = events;
+    public void Emit(LogEvent logEvent) => _events.Add(logEvent);
+}
+// In test: logEvents.Should().Contain(e => e.RenderMessage().Contains("Resolved timeout: 20s"));
+```
+Pass `verbose: true` + leave endpoint missing → verbose log fires → `ConnectionException` fires → assert log content.
+
+**Packages already available (no additions needed):**
+- `Serilog 4.3.1` — provides `ILogEventSink`, `LogEvent`, `RenderMessage()`
+
+**ExecuteAsync parameter evolution:**
+After ADR-012, the signature is:
+```csharp
+ExecuteAsync(query, outputFolder, outputName, useStdout,
+             endpointArg, usernameArg, passwordArg, timeoutArg, verbose)
+```
+All call sites in tests now include `timeoutArg: null` explicitly to prevent silent breakage on future parameter additions.
+
 ## Cross-Agent Updates
 
-### From Han (2026-03-27)
-✅ **Implementation complete**: `src/CsvLoader/` built with 0 errors. All your reference implementations have targets — Han's production classes must be wired to the same interfaces (IQueryResolver, IConfigurationMerger, ICsvWriter, IFileOutputService) and pass the same 35 unit tests. Key patterns: System.CommandLine 3.x, Serilog to stderr, JsonDocument parsing, IBMiSQLApi direct instantiation.
+### From Luke (2026-07-16)
+✅ **Design complete**: ADR-012 provides full architecture for 3-layer timeout precedence. Validation (positive only) specified.
 
-### From Wedge (2026-03-27)
-✅ **CI pipeline integrated**: Your 61 tests will run on every push/PR via `dotnet test` step in `.github/workflows/ci.yml`. Gate: `--filter "Category!=Integration"` for CI (35 unit), integration tests run in IBM i environments only. Standard flow: Checkout → GitVersion → .NET setup → Restore → Build → **Test** → Publish. Set `CSVLOADER_BIN` env var in CI after binary publish for ProcessHelper to locate it.
+### From Han (2026-07-16)
+✅ **Implementation complete**: `--timeout` option fully wired. Both timeout surfaces set consistently. Build clean. 7 new tests validate the feature end-to-end.

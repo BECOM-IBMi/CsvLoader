@@ -37,13 +37,62 @@
 - Config merging: IConfiguration (appsettings + user-secrets) + CLI args overlaid explicitly in `ConfigMerger`
 - Build order for Han: ExitCodes → LoggingSetup → ErrorRenderer → CliCommand → ConfigMerger → QueryResolver → ISqlApiClient → CsvFormatter → OutputWriter → Program.cs
 
+### 2026-07-16 — Interactive Password Prompt (ADR-011)
+
+**Feature:** If the password is absent from both CLI args and config, prompt the user interactively instead of throwing immediately.
+
+**Key decisions:**
+- Prompt location: `QueryService.ExecuteAsync()` after the three-line config merge, before missing-value check
+- New `PasswordPrompter` static class in `Services/` — one method, no interface, consistent with ADR-006 no-DI
+- Uses `_errorConsole` (already stderr-routed) so `--stdout` pipe mode is never polluted (FR-08)
+- `Spectre.Console` `TextPrompt<string>.Secret()` handles masking + empty-string re-prompt loop
+- Non-interactive guard: `console.Profile.Capabilities.Interactive` check → returns `null` → existing `ConnectionException` fires unchanged (CI safe)
+- Ctrl+C propagates as `OperationCanceledException` → exit 99 (acceptable)
+- **Blast radius**: 1 new file (`PasswordPrompter.cs`), 2 lines in `QueryService.cs`
+- Decision doc: `.squad/decisions/inbox/luke-interactive-password-prompt.md`
+
+### 2026-07-16 — Optional `--timeout` Parameter (ADR-012)
+
+**Feature:** Allow users to override the HTTP request timeout (default 20 s) via `--timeout <seconds>` CLI arg or `CsvLoader:Timeout` appsettings key.
+
+**Key findings from investigation:**
+- `EndpointConfiguration.Timeout` is `int` (seconds), default = **20** (confirmed by reflection + README).
+- Current `CallApiAsync` hardcodes `HttpClient.Timeout = TimeSpan.FromSeconds(20)` but does NOT set `EndpointConfiguration.Timeout` explicitly — it relies on the default.
+- Both `HttpClient.Timeout` (TimeSpan) and `EndpointConfiguration.Timeout` (int seconds) must be set consistently; `HttpClient.Timeout` is what .NET actually enforces for the cancellation, but the library may also use its own property internally.
+- Short alias `-t` is free (all of `-q -o -n -e -u -p -v` are taken).
+
+**Design decisions:**
+- CLI option: `--timeout`/`-t`, type `int?`, optional, no upper bound
+- appsettings key: `CsvLoader:Timeout` (consistent with other connection params)
+- Precedence: CLI arg > appsettings > hardcoded 20
+- Validation: parse-time validator (> 0 only, same location as --stdout/--name exclusion)
+- Verbose: log resolved timeout value alongside endpoint/username/password logs
+- Blast radius: 3 files (~15 lines)
+- Decision doc: `.squad/decisions/inbox/luke-timeout-param.md`
+
+### 2026-07-16 — Optional `--timeout` Parameter (ADR-012)
+
+**Feature:** Allow users to override the HTTP request timeout (default 20 s) via `--timeout <seconds>` CLI arg or `CsvLoader:Timeout` appsettings key.
+
+**Key findings from investigation:**
+- `EndpointConfiguration.Timeout` is `int` (seconds), default = **20** (confirmed by reflection + README).
+- Current `CallApiAsync` hardcodes `HttpClient.Timeout = TimeSpan.FromSeconds(20)` but does NOT set `EndpointConfiguration.Timeout` explicitly — it relies on the default.
+- Both `HttpClient.Timeout` (TimeSpan) and `EndpointConfiguration.Timeout` (int seconds) must be set consistently; `HttpClient.Timeout` is what .NET actually enforces for the cancellation, but the library may also use its own property internally.
+- Short alias `-t` is free (all of `-q -o -n -e -u -p -v` are taken).
+
+**Design decisions:**
+- CLI option: `--timeout`/`-t`, type `int?`, optional, no upper bound
+- appsettings key: `CsvLoader:Timeout` (consistent with other connection params)
+- Precedence: CLI arg > appsettings > hardcoded 20
+- Validation: parse-time validator (> 0 only, same location as --stdout/--name exclusion)
+- Verbose: log resolved timeout value alongside endpoint/username/password logs
+- Blast radius: 3 files (~15 lines)
+- Decision doc: `.squad/decisions.md` ADR-012
+
 ## Cross-Agent Updates
 
-### From Han (2026-03-27)
-✅ **Implementation complete**: `src/CsvLoader/` delivered with 0 errors. All 10 ADRs respected in code: System.CommandLine 3.x, Serilog stderr routing, ISqlApiClient wrapper, single exception type, no DI, ConfigMerger merging CLI args, pure CsvFormatter. Ready for testing.
+### From Han (2026-07-16)
+✅ **Implementation complete**: `--timeout` option added to RootCommandBuilder, parameter threaded through QueryService, both timeout surfaces set consistently. Build clean. Ready for Leia's tests.
 
-### From Leia (2026-03-27)
-✅ **Test suite complete**: 61 tests (35 unit, 26 integration). Your ADRs are validated by Leia's test coverage — every architecture decision has test cases. All tests use reference implementations as acceptance spec. Han's code must pass these tests to be production-ready.
-
-### From Wedge (2026-03-27)
-✅ **CI/CD live**: Both workflows created. Han's project path is hardcoded in workflows. Leia's `dotnet test --filter "Category!=Integration"` gate integrated. GitVersion semantic versioning automatic. Release workflow creates GitHub Release on tags.
+### From Leia (2026-07-16)
+✅ **Tests complete**: 7 new tests (4 unit + 3 integration) for timeout precedence and parse-time validation. 45/45 tests pass. Feature validated end-to-end.

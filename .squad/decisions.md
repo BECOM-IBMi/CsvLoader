@@ -168,6 +168,20 @@
 - **Design**: `if (string.IsNullOrWhiteSpace(password)) password = PasswordPrompter.Prompt(_errorConsole);` inserted in `QueryService.ExecuteAsync()` after the merge line. Prompt goes to `_errorConsole` (stderr) — stdout never polluted (FR-08 preserved). No new dependencies; Spectre.Console already in stack.
 - **Consequences**: Interactive users always get a chance to enter a password. CI/pipe environments are unaffected (exit 2 as before). Minimal blast radius: 1 new file, 2 lines in `QueryService`.
 
+### ADR-012: Optional `--timeout` CLI Parameter
+- **Status**: Active
+- **Author**: Luke (Lead/Architect)
+- **Date**: 2026-07-16
+- **Requested by**: mprattinge
+- **Context**: `EndpointConfiguration.Timeout` (int, seconds, default 20) controls HTTP request timeout. Current code hardcodes `HttpClient.Timeout = TimeSpan.FromSeconds(20)` but does NOT set `EndpointConfiguration.Timeout` explicitly, leaving both out of sync. Long-running queries can exceed 20 seconds; users need a way to override without config files.
+- **Decision**: Add `--timeout`/`-t` CLI option (int?, optional) with 3-layer precedence: CLI arg > `CsvLoader:Timeout` in appsettings > hardcoded 20. Validation: parse-time only, must be positive (>0). Verbose mode logs resolved timeout.
+- **Implementation**: 
+  - `RootCommandBuilder`: Add `timeoutOption`, validator, extract in handler
+  - `QueryService.ExecuteAsync`: Add `int? timeoutArg` parameter, resolve via null-coalesce, pass to `CallApiAsync`
+  - `CallApiAsync`: Set both `EndpointConfiguration.Timeout` and `HttpClient.Timeout` to resolved value (replace hardcoded 20)
+  - `appsettings.json`: Add `CsvLoader:Timeout` key (default 20)
+- **Consequence**: 3 files, ~15 lines. Fully backward-compatible. Both timeout surfaces kept in sync.
+
 ## Governance
 
 - All meaningful changes require team consensus
