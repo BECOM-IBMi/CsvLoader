@@ -1,6 +1,6 @@
 using CsvLoader.Exceptions;
 using CsvLoader.Services;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.Configuration;
 using Serilog.Core;
 using Serilog.Events;
@@ -57,9 +57,9 @@ public sealed class QueryServiceTimeoutTests
             verbose: true);
 
         // ValidationException for the missing endpoint is expected and acceptable here
-        await act.Should().ThrowAsync<ValidationException>();
+        await Should.ThrowAsync<ValidationException>(async () => await act());
 
-        logEvents.Should().Contain(
+        logEvents.ShouldContain(
             e => e.RenderMessage().Contains("Resolved timeout: 20s"),
             "hardcoded default is 20 when neither CLI arg nor CsvLoader:Timeout config key is present");
     }
@@ -90,9 +90,9 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: 60,   // explicit CLI arg
             verbose: true);
 
-        await act.Should().ThrowAsync<ValidationException>();
+        await Should.ThrowAsync<ValidationException>(async () => await act());
 
-        logEvents.Should().Contain(
+        logEvents.ShouldContain(
             e => e.RenderMessage().Contains("Resolved timeout: 60s"),
             "timeoutArg=60 must be used as-is without consulting config or default");
     }
@@ -123,9 +123,9 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: null,   // no CLI arg → must fall back to config
             verbose: true);
 
-        await act.Should().ThrowAsync<ValidationException>();
+        await Should.ThrowAsync<ValidationException>(async () => await act());
 
-        logEvents.Should().Contain(
+        logEvents.ShouldContain(
             e => e.RenderMessage().Contains("Resolved timeout: 45s"),
             "CsvLoader:Timeout=45 in config must be used when no CLI arg is supplied");
     }
@@ -156,12 +156,12 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: 30,   // CLI arg wins
             verbose: true);
 
-        await act.Should().ThrowAsync<ValidationException>();
+        await Should.ThrowAsync<ValidationException>(async () => await act());
 
-        logEvents.Should().Contain(
+        logEvents.ShouldContain(
             e => e.RenderMessage().Contains("Resolved timeout: 30s"),
             "CLI arg 30 must win over CsvLoader:Timeout=60 in config (ADR-002)");
-        logEvents.Should().NotContain(
+        logEvents.ShouldNotContain(
             e => e.RenderMessage().Contains("Resolved timeout: 60s"),
             "config value must not be used when the CLI arg is present");
     }

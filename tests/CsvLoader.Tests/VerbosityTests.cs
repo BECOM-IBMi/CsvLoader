@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace CsvLoader.Tests;
 
@@ -25,8 +25,8 @@ public sealed class VerbosityTests
         ]);
 
         // stderr must be empty on success without -v
-        exitCode.Should().Be(0);
-        stderr.Should().BeEmpty("silent success: no stderr output unless -v is set (FR-23)");
+        exitCode.ShouldBe(0);
+        stderr.ShouldBeEmpty("silent success: no stderr output unless -v is set (FR-23)");
     }
 
     [Fact(DisplayName = "FR23 - Silent success in file mode: no stdout output")]
@@ -42,9 +42,9 @@ public sealed class VerbosityTests
                 // -v intentionally absent
             ]);
 
-            exitCode.Should().Be(0);
-            stdout.Should().BeEmpty("no stdout in file mode without -v (FR-23)");
-            stderr.Should().BeEmpty("no stderr on success without -v (FR-23)");
+            exitCode.ShouldBe(0);
+            stdout.ShouldBeEmpty("no stdout in file mode without -v (FR-23)");
+            stderr.ShouldBeEmpty("no stderr on success without -v (FR-23)");
         }
         finally
         {
@@ -66,10 +66,9 @@ public sealed class VerbosityTests
             "--verbose"
         ]);
 
-        exitCode.Should().Be(0);
+        exitCode.ShouldBe(0);
         // Endpoint URL must appear in verbose output
-        stderr.Should().MatchRegex(@"https?://",
-            "resolved endpoint must be logged in verbose mode (FR-24)");
+        stderr.ShouldMatch(@"https?://");
     }
 
     [Fact(DisplayName = "FR24 - Verbose mode logs the SQL being executed")]
@@ -83,8 +82,8 @@ public sealed class VerbosityTests
             "--verbose"
         ]);
 
-        exitCode.Should().Be(0);
-        stderr.Should().Contain(sql, "executed SQL must be logged in verbose mode (FR-24)");
+        exitCode.ShouldBe(0);
+        stderr.ShouldContain(sql);
     }
 
     [Fact(DisplayName = "FR24 - Verbose mode logs row count received")]
@@ -96,10 +95,9 @@ public sealed class VerbosityTests
             "--verbose"
         ]);
 
-        exitCode.Should().Be(0);
+        exitCode.ShouldBe(0);
         // Row count must appear somewhere in verbose output (matches "0 row", "1 row", "N rows", etc.)
-        stderr.Should().MatchRegex(@"\d+\s+rows?",
-            "row count must be logged in verbose mode (FR-24)");
+        stderr.ShouldMatch(@"\d+\s+rows?");
     }
 
     [Fact(DisplayName = "FR24 - Verbose mode logs the output path (file mode)")]
@@ -115,9 +113,8 @@ public sealed class VerbosityTests
                 "--verbose"
             ]);
 
-            exitCode.Should().Be(0);
-            stderr.Should().Contain("verbose-test.csv",
-                "output path must be logged in verbose mode (FR-24)");
+            exitCode.ShouldBe(0);
+            stderr.ShouldContain("verbose-test.csv");
         }
         finally
         {
@@ -144,10 +141,8 @@ public sealed class VerbosityTests
             "--verbose"
         ]);
 
-        stderr.Should().NotContain(password,
-            "the actual password must never appear in verbose log output (FR-24)");
-        stderr.Should().MatchRegex(@"\*+|<masked>|\[masked\]",
-            "a masked placeholder must appear where the password would be");
+        stderr.ShouldNotContain(password);
+        stderr.ShouldMatch(@"\*+|<masked>|\[masked\]");
     }
 
     // -----------------------------------------------------------------------
@@ -163,10 +158,9 @@ public sealed class VerbosityTests
             "--verbose"
         ]);
 
-        exitCode.Should().Be(0);
+        exitCode.ShouldBe(0);
         // Serilog default template includes level token; Debug entries must appear
-        stderr.Should().MatchRegex(@"\b(dbg|debug|DBG|DEBUG)\b",
-            "Debug-level Serilog entries must appear in verbose mode (FR-25)");
+        stderr.ShouldMatch(@"\b(dbg|debug|DBG|DEBUG)\b");
     }
 
     [Fact(DisplayName = "FR25 - Normal mode suppresses Debug-level entries")]
@@ -178,8 +172,7 @@ public sealed class VerbosityTests
             // -v absent → Warning level minimum
         ]);
 
-        exitCode.Should().Be(0);
-        stderr.Should().NotMatchRegex(@"\b(dbg|debug|DBG|DEBUG)\b",
-            "Debug entries must not appear when -v is absent (FR-25)");
+        exitCode.ShouldBe(0);
+        stderr.ShouldNotMatch(@"\b(dbg|debug|DBG|DEBUG)\b");
     }
 }

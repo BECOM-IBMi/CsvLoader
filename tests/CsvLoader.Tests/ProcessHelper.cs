@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace CsvLoader.Tests;
 
@@ -28,8 +29,11 @@ internal static class ProcessHelper
             ? parts[binIndex + 1]
             : "Debug";
 
-        var exeName = OperatingSystem.IsWindows() ? "SqlApiCli.exe" : "SqlApiCli";
-        var rid = OperatingSystem.IsWindows() ? "win-x64" : "linux-x64";
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var exeName = isWindows ? "SqlApiCli.exe" : "SqlApiCli";
+
+        // Use win-x64 on Windows (including WSL-invoked .NET), linux-x64 on Linux
+        var rid = isWindows ? "win-x64" : "linux-x64";
 
         // Try RID-specific path first (self-contained builds)
         var ridPath = Path.GetFullPath(Path.Combine(

@@ -1,0 +1,263 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  CsvLoader -> /mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/linux-x64/SqlApiCli.dll
+  CsvLoader.Tests -> /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0/CsvLoader.Tests.dll
+Test run for /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0/CsvLoader.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+  Failed FR10 - --stdout + --name together causes parse-time error [161 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.StdoutModeTests.FR10_StdoutAndName_MutuallyExclusive_ParseError() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/StdoutModeTests.cs:line 100
+--- End of stack trace from previous location ---
+  Failed FR20 - SQL error from API exits 3 [161 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR20_SqlError_ExitCode_IsThree() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 121
+--- End of stack trace from previous location ---
+  Failed --timeout -5 exits 1 (negative integer) [161 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.TimeoutValidationTests.Timeout_Negative_ExitsOne() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/TimeoutValidationTests.cs:line 44
+--- End of stack trace from previous location ---
+  Failed FR07 - CLI overwrites existing file [13 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.FileOutputTests.FR07_Integration_CliOverwritesExistingFile() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/FileOutputTests.cs:line 154
+--- End of stack trace from previous location ---
+  Failed FR25 - Verbose mode produces Debug-level log entries [161 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR25_VerboseMode_ProducesDebugLevelOutput() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 155
+--- End of stack trace from previous location ---
+  Failed FR24 - Verbose mode logs the SQL being executed [10 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR24_VerboseMode_LogsSqlStatement() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 79
+--- End of stack trace from previous location ---
+  Failed -t 0 (short alias) exits 1 [11 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.TimeoutValidationTests.Timeout_ShortAlias_Zero_ExitsOne() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/TimeoutValidationTests.cs:line 61
+--- End of stack trace from previous location ---
+  Failed FR10 - --stdout + --name together exits 1 (parse error, before I/O) [11 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR10_StdoutAndName_Together_ExitCode_IsOne_BeforeIO() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 67
+--- End of stack trace from previous location ---
+  Failed FR08 - --stdout writes only CSV to stdout [11 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.StdoutModeTests.FR08_StdoutMode_OnlyCsv_WrittenToStdout() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/StdoutModeTests.cs:line 21
+--- End of stack trace from previous location ---
+  Failed FR20 - I/O error writing file exits 4 [10 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR20_IOError_WritingFile_ExitCode_IsFour() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 138
+--- End of stack trace from previous location ---
+  Failed FR08 - --stdout mode produces a header row as first line [9 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.StdoutModeTests.FR08_StdoutMode_HeaderRow_IsFirstLine() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/StdoutModeTests.cs:line 43
+--- End of stack trace from previous location ---
+  Failed --timeout 0 exits 1 (zero is not a positive integer) [10 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.TimeoutValidationTests.Timeout_Zero_ExitsOne() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/TimeoutValidationTests.cs:line 27
+--- End of stack trace from previous location ---
+  Failed FR24 - Verbose mode logs the output path (file mode) [10 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR24_VerboseMode_LogsOutputPath() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 109
+--- End of stack trace from previous location ---
+  Failed FR24 - Password is masked in verbose output [8 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/tmp/CsvLoaderFileTests_28b5025a66254d73964fea4b0661f361'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR24_Password_IsMasked_InVerboseOutput() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 135
+--- End of stack trace from previous location ---
+  Failed FR09 - Error message goes to stderr in file mode [9 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.StdoutModeTests.FR09_ErrorsGoToStderr_InFileMode() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/StdoutModeTests.cs:line 81
+--- End of stack trace from previous location ---
+  Failed FR03 - Missing --query exits 1 [9 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR03_MissingQuery_ExitCode_IsOne() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 53
+--- End of stack trace from previous location ---
+  Failed FR24 - Verbose mode logs resolved configuration values [18 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR24_VerboseMode_LogsResolvedConfiguration() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 63
+--- End of stack trace from previous location ---
+  Failed FR14 - Missing connection value after merge exits 1 [18 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR14_MissingConnection_ExitCode_IsOne() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 84
+--- End of stack trace from previous location ---
+  Failed FR10 - Parse error occurs before any I/O (no file created) [19 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.StdoutModeTests.FR10_ParseError_BeforeIO_NoFileCreated() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/StdoutModeTests.cs:line 116
+--- End of stack trace from previous location ---
+  Failed FR20 - Connection failure exits 2 [11 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR20_ConnectionFailure_ExitCode_IsTwo() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 102
+--- End of stack trace from previous location ---
+  Failed FR09 - Error message goes to stderr in --stdout mode [10 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.StdoutModeTests.FR09_ErrorsGoToStderr_InStdoutMode() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/StdoutModeTests.cs:line 65
+--- End of stack trace from previous location ---
+  Failed FR24 - Verbose mode logs row count received [11 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR24_VerboseMode_LogsRowCount() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 92
+--- End of stack trace from previous location ---
+  Failed FR04/FR05 - CLI creates output folder and writes file [8 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.FileOutputTests.FR04_FR05_Integration_CliCreatesOutputFolder() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/FileOutputTests.cs:line 135
+--- End of stack trace from previous location ---
+  Failed FR23 - Silent success: no stdout/stderr when -v absent [8 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR23_SilentSuccess_NoOutputWithoutVerbose() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 21
+--- End of stack trace from previous location ---
+  Failed FR20 - Successful query exits 0 [8 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR20_SuccessfulQuery_ExitCode_IsZero() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 38
+--- End of stack trace from previous location ---
+  Failed FR21 - Empty result set exits 0 (not an error) [11 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.ExitCodeTests.FR21_EmptyResultSet_ExitCode_IsZero() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ExitCodeTests.cs:line 27
+--- End of stack trace from previous location ---
+  Failed FR23 - Silent success in file mode: no stdout output [12 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR23_SilentSuccess_NoStdout_InFileMode() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 38
+--- End of stack trace from previous location ---
+  Failed FR25 - Normal mode suppresses Debug-level entries [25 ms]
+  Error Message:
+   System.ComponentModel.Win32Exception : An error occurred trying to start process '/mnt/c/dev/cs/CsvLoader/src/CsvLoader/bin/Debug/net10.0/SqlApiCli' with working directory '/mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/bin/Debug/net10.0'. No such file or directory
+  Stack Trace:
+     at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at CsvLoader.Tests.ProcessHelper.RunAsync(String[] args, String stdinInput, Int32 timeoutMs) in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/ProcessHelper.cs:line 73
+   at CsvLoader.Tests.VerbosityTests.FR25_NormalMode_SuppressesDebugOutput() in /mnt/c/dev/cs/CsvLoader/tests/CsvLoader.Tests/VerbosityTests.cs:line 169
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:    28, Passed:    45, Skipped:     0, Total:    73, Duration: 462 ms - CsvLoader.Tests.dll (net10.0)

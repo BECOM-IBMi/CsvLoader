@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using FluentAssertions;
+using Shouldly;
 
 namespace CsvLoader.Tests;
 
@@ -38,7 +38,7 @@ public sealed class FileOutputTests : IDisposable
             Directory.SetCurrentDirectory(_tempDir);
             var writtenPath = await _service.WriteAsync(null, "test-fr04.csv", "Col1\n");
 
-            Path.GetDirectoryName(writtenPath).Should().Be(_tempDir,
+            Path.GetDirectoryName(writtenPath).ShouldBe(_tempDir,
                 "when no output folder is given, the file should land in the CWD");
         }
         finally
@@ -55,11 +55,11 @@ public sealed class FileOutputTests : IDisposable
     public async Task FR05_NonExistentOutputFolder_IsCreatedAutomatically()
     {
         var newFolder = Path.Combine(_tempDir, "level1", "level2", "output");
-        Directory.Exists(newFolder).Should().BeFalse("precondition: folder must not exist");
+        Directory.Exists(newFolder).ShouldBeFalse("precondition: folder must not exist");
 
         await _service.WriteAsync(newFolder, "data.csv", "Header\n");
 
-        Directory.Exists(newFolder).Should().BeTrue("non-existent folder must be created (FR-05)");
+        Directory.Exists(newFolder).ShouldBeTrue("non-existent folder must be created (FR-05)");
     }
 
     // -----------------------------------------------------------------------
@@ -73,7 +73,7 @@ public sealed class FileOutputTests : IDisposable
 
         var fileName = Path.GetFileName(writtenPath);
         Regex.IsMatch(fileName, @"^data_\d{8}_\d{6}\.csv$")
-            .Should().BeTrue($"filename '{fileName}' must match data_yyyyMMdd_HHmmss.csv (FR-06)");
+            .ShouldBeTrue($"filename '{fileName}' must match data_yyyyMMdd_HHmmss.csv (FR-06)");
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class FileOutputTests : IDisposable
         var writtenPath = await _service.WriteAsync(_tempDir, null, "Id\n");
 
         var fileName = Path.GetFileName(writtenPath);
-        fileName.Should().Be("data_20260327_143005.csv");
+        fileName.ShouldBe("data_20260327_143005.csv");
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class FileOutputTests : IDisposable
     {
         var writtenPath = await _service.WriteAsync(_tempDir, "my_export.csv", "Id\n");
 
-        Path.GetFileName(writtenPath).Should().Be("my_export.csv",
+        Path.GetFileName(writtenPath).ShouldBe("my_export.csv",
             "custom -n filename must be honoured (FR-06)");
     }
 
@@ -108,8 +108,8 @@ public sealed class FileOutputTests : IDisposable
         await _service.WriteAsync(_tempDir, "existing.csv", "NEW CONTENT");
 
         var content = await File.ReadAllTextAsync(filePath);
-        content.Should().Contain("NEW CONTENT").And.NotContain("OLD CONTENT",
-            "existing file must be overwritten (FR-07)");
+        content.ShouldContain("NEW CONTENT");
+        content.ShouldNotContain("OLD CONTENT");
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class FileOutputTests : IDisposable
         var writtenPath = await _service.WriteAsync(_tempDir, "output.csv", csv);
 
         var content = await File.ReadAllTextAsync(writtenPath);
-        content.Should().Be(csv);
+        content.ShouldBe(csv);
     }
 
     // -----------------------------------------------------------------------
@@ -138,9 +138,9 @@ public sealed class FileOutputTests : IDisposable
             "--name", "result.csv"
         ]);
 
-        exitCode.Should().Be(0);
-        Directory.Exists(outputDir).Should().BeTrue("CLI must create the folder (FR-05)");
-        File.Exists(Path.Combine(outputDir, "result.csv")).Should().BeTrue();
+        exitCode.ShouldBe(0);
+        Directory.Exists(outputDir).ShouldBeTrue("CLI must create the folder (FR-05)");
+        File.Exists(Path.Combine(outputDir, "result.csv")).ShouldBeTrue();
     }
 
     [Fact(DisplayName = "FR07 - CLI overwrites existing file")]
@@ -157,8 +157,8 @@ public sealed class FileOutputTests : IDisposable
             "--name", "overwrite.csv"
         ]);
 
-        exitCode.Should().Be(0);
+        exitCode.ShouldBe(0);
         var content = await File.ReadAllTextAsync(outputFile);
-        content.Should().NotBe("STALE DATA", "existing file must be overwritten (FR-07)");
+        content.ShouldNotBe("STALE DATA", "existing file must be overwritten (FR-07)");
     }
 }

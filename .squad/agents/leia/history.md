@@ -254,3 +254,58 @@ After fixing ProcessHelper path resolution bug (hardcoded "CsvLoader.exe" → "S
 
 **Key insight:**
 Exception types map to exit codes. Missing required values (validation error) is fundamentally different from connection failures. The Becom library's error handling requires message inspection to properly classify errors.
+
+### Session: Linux Test Fixes and Shouldly Migration (2026-03-27)
+
+**Context:**
+- 16 tests failing on Linux/WSL due to ProcessHelper path resolution issues
+- User requested migration from FluentAssertions to Shouldly assertion library
+
+**Issue 1 — ProcessHelper Linux compatibility (INFRASTRUCTURE BUG):**
+- Line 31: Used `OperatingSystem.IsWindows()` which works, but hardcoded RID was problematic
+- Line 32: Hardcoded `rid = "linux-x64"` instead of detecting actual runtime
+- Root cause: Binary path construction assumed `win-x64` on Windows, `linux-x64` on non-Windows, but didn't use actual RuntimeInformation
+
+**Solution implemented:**
+1. Added `using System.Runtime.InteropServices;` to ProcessHelper.cs
+2. Changed `OperatingSystem.IsWindows()` → `RuntimeInformation.IsOSPlatform(OSPlatform.Windows)` for better cross-platform detection
+3. Changed hardcoded RID → `RuntimeInformation.RuntimeIdentifier` to use actual runtime identifier (e.g., `linux-x64`, `linux-arm64`, `osx-x64`, etc.)
+
+**Issue 2 — FluentAssertions → Shouldly migration:**
+Replaced FluentAssertions with Shouldly across all 10 test files (73 tests total):
+
+**Package change:**
+- Removed: `FluentAssertions 8.9.0`
+- Added: `Shouldly 4.2.1`
+
+**Syntax conversions applied:**
+1. `using FluentAssertions;` → `using Shouldly;`
+2. `.Should().Be(x)` → `.ShouldBe(x)`
+3. `.Should().BeNull()` → `.ShouldBeNull()`
+4. `.Should().NotBeNull()` → `.ShouldNotBeNull()`
+5. `.Should().BeEmpty()` → `.ShouldBeEmpty()`
+6. `.Should().NotBeEmpty()` → `.ShouldNotBeEmpty()`
+7. `.Should().BeTrue()` → `.ShouldBeTrue()`
+8. `.Should().BeFalse()` → `.ShouldBeFalse()`
+9. `.Should().Contain(x)` → `.ShouldContain(x)`
+10. `.Should().NotContain(x)` → `.ShouldNotContain(x)`
+11. `.Should().HaveCount(n)` → `.Count.ShouldBe(n)`
+12. `.Should().StartWith(x)` → `.ShouldStartWith(x)`
+13. `.Should().EndWith(x)` → `.ShouldEndWith(x)`
+14. `.Should().MatchRegex(pattern)` → `.ShouldMatch(pattern)`
+15. `.Should().NotMatchRegex(pattern)` → `.ShouldNotMatch(pattern)`
+16. `await act.Should().ThrowAsync<T>()` → `await Should.ThrowAsync<T>(act)`
+17. Removed `.Which` after exception assertions (Shouldly returns exception directly)
+18. Split `.And.` chained assertions into separate statements
+
+**Files modified:**
+- `tests/CsvLoader.Tests/ProcessHelper.cs` — added RuntimeInformation, fixed RID detection
+- `tests/CsvLoader.Tests/CsvLoader.Tests.csproj` — replaced FluentAssertions with Shouldly
+- All 10 test files updated with Shouldly syntax
+
+**Test results:**
+- Before: 73 tests passing on Windows, 16 failing on Linux
+- After: **All 73 tests passing** on both Windows and Linux
+
+**Key insight:**
+Use `RuntimeInformation.RuntimeIdentifier` instead of hardcoding RIDs for cross-platform binary discovery. Shouldly's syntax is more concise but has different patterns for chained assertions and exception handling.

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NSubstitute;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -37,7 +37,7 @@ public sealed class PasswordPrompterTests
         var result = ReferencePasswordPrompter.Prompt(console);
 
         // Assert: null signals "no password obtained"; QueryService will throw ConnectionException (exit 2)
-        result.Should().BeNull(
+        result.ShouldBeNull(
             "a non-interactive console must never block waiting for user input");
     }
 
@@ -76,7 +76,7 @@ public sealed class PasswordPrompterTests
         var result = ReferencePasswordPrompter.Prompt(mockConsole);
 
         // Assert
-        result.Should().Be("TopS3cret!");
+        result.ShouldBe("TopS3cret!");
     }
 
     // -----------------------------------------------------------------------

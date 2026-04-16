@@ -1,6 +1,6 @@
 using CsvLoader.Exceptions;
 using CsvLoader.Services;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -52,8 +52,8 @@ public sealed class QueryServicePasswordTests
             verbose: false);
 
         // Assert: non-interactive console must not block; missing password must still be reported
-        await act.Should().ThrowAsync<ValidationException>()
-            .WithMessage("*password*");
+        var ex = await Should.ThrowAsync<ValidationException>(async () => await act());
+        ex.Message.ShouldContain("password");
     }
 
     // -----------------------------------------------------------------------
@@ -92,11 +92,9 @@ public sealed class QueryServicePasswordTests
         //   If PasswordPrompter was NOT called, the exception would also mention "password".
         //   Presence of "endpoint" (and absence of "password") proves the prompt was invoked
         //   and its return value was used.
-        var ex = await act.Should().ThrowAsync<ValidationException>();
-        ex.Which.Message.Should().Contain("endpoint",
-            "the endpoint is the only unresolved connection value");
-        ex.Which.Message.Should().NotContain("password",
-            "password was supplied by the interactive prompt — it must not appear as missing");
+        var ex = await Should.ThrowAsync<ValidationException>(async () => await act());
+        ex.Message.ShouldContain("endpoint");
+        ex.Message.ShouldNotContain("password");
     }
 
     // -----------------------------------------------------------------------
@@ -129,11 +127,9 @@ public sealed class QueryServicePasswordTests
             verbose: false);
 
         // Assert: exception must be about the missing endpoint, not the password
-        var ex = await act.Should().ThrowAsync<ValidationException>();
-        ex.Which.Message.Should().Contain("endpoint",
-            "the only missing value is the endpoint");
-        ex.Which.Message.Should().NotContain("password",
-            "password was resolved from config — PasswordPrompter must not be invoked");
+        var ex = await Should.ThrowAsync<ValidationException>(async () => await act());
+        ex.Message.ShouldContain("endpoint");
+        ex.Message.ShouldNotContain("password");
     }
 
     // -----------------------------------------------------------------------
@@ -162,10 +158,9 @@ public sealed class QueryServicePasswordTests
             timeoutArg: null,
             verbose: false);
 
-        var ex = await act.Should().ThrowAsync<ValidationException>();
-        ex.Which.Message.Should().Contain("endpoint");
-        ex.Which.Message.Should().NotContain("password",
-            "password was supplied via --password CLI arg — PasswordPrompter must not be invoked");
+        var ex = await Should.ThrowAsync<ValidationException>(async () => await act());
+        ex.Message.ShouldContain("endpoint");
+        ex.Message.ShouldNotContain("password");
     }
 
     // -----------------------------------------------------------------------

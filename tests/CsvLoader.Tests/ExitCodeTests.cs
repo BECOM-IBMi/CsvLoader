@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace CsvLoader.Tests;
 
@@ -29,7 +29,7 @@ public sealed class ExitCodeTests
             "--stdout"
         ]);
 
-        exitCode.Should().Be(0, "empty result set is not an error (FR-21)");
+        exitCode.ShouldBe(0, "empty result set is not an error (FR-21)");
     }
 
     [Fact(DisplayName = "FR20 - Successful query exits 0")]
@@ -40,7 +40,7 @@ public sealed class ExitCodeTests
             "--stdout"
         ]);
 
-        exitCode.Should().Be(0);
+        exitCode.ShouldBe(0);
     }
 
     // -----------------------------------------------------------------------
@@ -57,8 +57,8 @@ public sealed class ExitCodeTests
             // --query intentionally absent
         ]);
 
-        exitCode.Should().Be(1, "missing required argument is a parse error");
-        stderr.Should().NotBeEmpty("a usage message must be written to stderr");
+        exitCode.ShouldBe(1, "missing required argument is a parse error");
+        stderr.ShouldNotBeEmpty("a usage message must be written to stderr");
     }
 
     [Fact(DisplayName = "FR10 - --stdout + --name together exits 1 (parse error, before I/O)")]
@@ -70,11 +70,10 @@ public sealed class ExitCodeTests
             "--name", "output.csv"
         ]);
 
-        exitCode.Should().Be(1, "--stdout and --name are mutually exclusive (FR-10)");
+        exitCode.ShouldBe(1, "--stdout and --name are mutually exclusive (FR-10)");
         // No file must have been created — verified by the test isolation (no --output used)
-        stderr.Should().NotBeEmpty("error message must go to stderr");
-        stdout.Should().NotContain(";",
-            "no CSV data should reach stdout when parse fails before I/O");
+        stderr.ShouldNotBeEmpty("error message must go to stderr");
+        stdout.ShouldNotContain(";");
     }
 
     [Fact(DisplayName = "FR14 - Missing connection value after merge exits 1")]
@@ -89,8 +88,8 @@ public sealed class ExitCodeTests
             "--password", "testpass"
         ]);
 
-        exitCode.Should().Be(1, "missing connection value before network call exits 1");
-        stderr.Should().NotBeEmpty("descriptive error message required (FR-14)");
+        exitCode.ShouldBe(1, "missing connection value before network call exits 1");
+        stderr.ShouldNotBeEmpty("descriptive error message required (FR-14)");
     }
 
     // -----------------------------------------------------------------------
@@ -108,8 +107,8 @@ public sealed class ExitCodeTests
             "--stdout"
         ]);
 
-        exitCode.Should().Be(2, "connection/auth failure exits with code 2 (FR-20)");
-        stderr.Should().NotBeEmpty("human-readable error must appear on stderr (FR-22)");
+        exitCode.ShouldBe(2, "connection/auth failure exits with code 2 (FR-20)");
+        stderr.ShouldNotBeEmpty("human-readable error must appear on stderr (FR-22)");
     }
 
     // -----------------------------------------------------------------------
@@ -124,8 +123,8 @@ public sealed class ExitCodeTests
             "--stdout"
         ]);
 
-        exitCode.Should().Be(3, "SQL execution error exits with code 3 (FR-20)");
-        stderr.Should().NotBeEmpty();
+        exitCode.ShouldBe(3, "SQL execution error exits with code 3 (FR-20)");
+        stderr.ShouldNotBeEmpty();
     }
 
     // -----------------------------------------------------------------------
@@ -142,8 +141,8 @@ public sealed class ExitCodeTests
             "--name", "test.csv"
         ]);
 
-        exitCode.Should().Be(4, "I/O error writing file exits with code 4 (FR-20)");
-        stderr.Should().NotBeEmpty();
+        exitCode.ShouldBe(4, "I/O error writing file exits with code 4 (FR-20)");
+        stderr.ShouldNotBeEmpty();
     }
 
     // -----------------------------------------------------------------------

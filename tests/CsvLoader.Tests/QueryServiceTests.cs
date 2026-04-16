@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.Configuration;
 
 namespace CsvLoader.Tests;
@@ -37,7 +37,7 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = await _resolver.ResolveAsync(sql);
 
-        result.Should().Be(sql);
+        result.ShouldBe(sql);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = await _resolver.ResolveAsync(filePath);
 
-        result.Should().Be(sqlContent);
+        result.ShouldBe(sqlContent);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class QueryServiceTests : IDisposable
         // Should NOT throw; the value is treated as literal SQL
         var result = await _resolver.ResolveAsync(nonExistent);
 
-        result.Should().Be(nonExistent);
+        result.ShouldBe(nonExistent);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = await _resolver.ResolveAsync(filePath);
 
-        result.Should().Be(sqlContent);
+        result.ShouldBe(sqlContent);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = await _resolver.ResolveAsync(filePath);
 
-        result.Should().BeEmpty();
+        result.ShouldBeEmpty();
     }
 
     // -----------------------------------------------------------------------
@@ -107,9 +107,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(fromCli, config);
 
-        result.Endpoint.Should().Be("https://cli-host/api", "CLI takes precedence");
-        result.Username.Should().Be("configuser", "config value is used when CLI is absent");
-        result.Password.Should().Be("configpass", "config value is used when CLI is absent");
+        result.Endpoint.ShouldBe("https://cli-host/api", "CLI takes precedence");
+        result.Username.ShouldBe("configuser", "config value is used when CLI is absent");
+        result.Password.ShouldBe("configpass", "config value is used when CLI is absent");
     }
 
     [Fact]
@@ -126,9 +126,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(fromCli, config);
 
-        result.Username.Should().Be("cliuser");
-        result.Endpoint.Should().Be("https://host/api");
-        result.Password.Should().Be("configpass");
+        result.Username.ShouldBe("cliuser");
+        result.Endpoint.ShouldBe("https://host/api");
+        result.Password.ShouldBe("configpass");
     }
 
     [Fact]
@@ -145,8 +145,8 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(fromCli, config);
 
-        result.Password.Should().Be("clipass");
-        result.Username.Should().Be("configuser");
+        result.Password.ShouldBe("clipass");
+        result.Username.ShouldBe("configuser");
     }
 
     [Fact]
@@ -163,9 +163,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(fromCli, config);
 
-        result.Endpoint.Should().Be("https://host/api");
-        result.Username.Should().Be("configuser");
-        result.Password.Should().Be("configpass");
+        result.Endpoint.ShouldBe("https://host/api");
+        result.Username.ShouldBe("configuser");
+        result.Password.ShouldBe("configpass");
     }
 
     [Fact]
@@ -180,9 +180,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(fromCli, config);
 
-        result.Endpoint.Should().Be("https://host/api");
-        result.Username.Should().Be("cliuser");
-        result.Password.Should().Be("clipass");
+        result.Endpoint.ShouldBe("https://host/api");
+        result.Username.ShouldBe("cliuser");
+        result.Password.ShouldBe("clipass");
     }
 
     [Fact]
@@ -199,9 +199,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(fromCli, config);
 
-        result.Endpoint.Should().Be("https://cli-host/api");
-        result.Username.Should().Be("cliuser");
-        result.Password.Should().Be("clipass");
+        result.Endpoint.ShouldBe("https://cli-host/api");
+        result.Username.ShouldBe("cliuser");
+        result.Password.ShouldBe("clipass");
     }
 
     // -----------------------------------------------------------------------
@@ -222,9 +222,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(new ConnectionSettings(null, null, null), config);
 
-        result.Endpoint.Should().BeNull("null signals missing value the app layer must reject");
-        result.Username.Should().Be("user");
-        result.Password.Should().Be("pass");
+        result.Endpoint.ShouldBeNull("null signals missing value the app layer must reject");
+        result.Username.ShouldBe("user");
+        result.Password.ShouldBe("pass");
     }
 
     [Fact]
@@ -239,9 +239,9 @@ public sealed class QueryServiceTests : IDisposable
 
         var result = _merger.Merge(new ConnectionSettings(null, null, null), config);
 
-        result.Endpoint.Should().NotBeNull();
-        result.Username.Should().NotBeNull();
-        result.Password.Should().NotBeNull();
+        result.Endpoint.ShouldNotBeNull();
+        result.Username.ShouldNotBeNull();
+        result.Password.ShouldNotBeNull();
     }
 
     // -----------------------------------------------------------------------

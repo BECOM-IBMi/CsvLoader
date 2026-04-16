@@ -1,5 +1,5 @@
 using System.Text;
-using FluentAssertions;
+using Shouldly;
 
 namespace CsvLoader.Tests;
 
@@ -22,7 +22,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["OrderId", "Status", "Amount"], []);
 
         var firstLine = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries)[0].TrimEnd('\r');
-        firstLine.Should().Be("OrderId;Status;Amount");
+        firstLine.ShouldBe("OrderId;Status;Amount");
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(columns, []);
 
         var firstLine = NormalizeLineEndings(csv).Split('\n')[0];
-        firstLine.Should().Be("A;B;C;D");
+        firstLine.ShouldBe("A;B;C;D");
     }
 
     // -----------------------------------------------------------------------
@@ -47,7 +47,7 @@ public sealed class CsvWriterTests
             [["Alpha", "Beta", "Gamma"]]);
 
         var lines = NormalizeLineEndings(csv).Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        lines[1].Should().Be("Alpha;Beta;Gamma");
+        lines[1].ShouldBe("Alpha;Beta;Gamma");
     }
 
     [Fact]
@@ -58,10 +58,10 @@ public sealed class CsvWriterTests
             [["1", "Alice"], ["2", "Bob"], ["3", "Carol"]]);
 
         var lines = NormalizeLineEndings(csv).Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        lines.Should().HaveCount(4); // 1 header + 3 data
-        lines[1].Should().Be("1;Alice");
-        lines[2].Should().Be("2;Bob");
-        lines[3].Should().Be("3;Carol");
+        lines.Count().ShouldBe(4); // 1 header + 3 data
+        lines[1].ShouldBe("1;Alice");
+        lines[2].ShouldBe("2;Bob");
+        lines[3].ShouldBe("3;Carol");
     }
 
     // -----------------------------------------------------------------------
@@ -77,7 +77,7 @@ public sealed class CsvWriterTests
         if (bytes.Length >= 3)
         {
             (bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
-                .Should().BeFalse("output must be UTF-8 without BOM (FR-17)");
+                .ShouldBeFalse("output must be UTF-8 without BOM (FR-17)");
         }
     }
 
@@ -87,7 +87,7 @@ public sealed class CsvWriterTests
         var bytes = _writer.WriteCsvUtf8(["Bezeichnung"], [["Österreich — Müller"]]);
 
         var decoded = Encoding.UTF8.GetString(bytes);
-        decoded.Should().Contain("Österreich — Müller");
+        decoded.ShouldContain("Österreich — Müller");
     }
 
     // -----------------------------------------------------------------------
@@ -100,7 +100,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Value"], [["Hello;World"]]);
 
         var dataLine = GetDataLine(csv, 1);
-        dataLine.Should().Be("\"Hello;World\"");
+        dataLine.ShouldBe("\"Hello;World\"");
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Value"], [["Say \"hello\""]]);
 
         var dataLine = GetDataLine(csv, 1);
-        dataLine.Should().Be("\"Say \"\"hello\"\"\"");
+        dataLine.ShouldBe("\"Say \"\"hello\"\"\"");
     }
 
     [Fact]
@@ -118,8 +118,9 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Value"], [["Line1\nLine2"]]);
 
         var dataLine = GetDataLine(csv, 1);
-        dataLine.Should().StartWith("\"").And.EndWith("\"");
-        dataLine.Should().Contain("Line1\nLine2");
+        dataLine.ShouldStartWith("\"");
+        dataLine.ShouldEndWith("\"");
+        dataLine.ShouldContain("Line1\nLine2");
     }
 
     [Fact]
@@ -128,7 +129,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Value"], [["Line1\r\nLine2"]]);
 
         var dataLine = GetDataLine(csv, 1);
-        dataLine.Should().StartWith("\"");
+        dataLine.ShouldStartWith("\"");
     }
 
     [Fact]
@@ -137,7 +138,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Value"], [["PlainText"]]);
 
         var dataLine = GetDataLine(csv, 1);
-        dataLine.Should().Be("PlainText");
+        dataLine.ShouldBe("PlainText");
     }
 
     [Fact]
@@ -146,7 +147,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["A", "B"], [[null, "X"]]);
 
         var dataLine = GetDataLine(csv, 1);
-        dataLine.Should().Be(";X");
+        dataLine.ShouldBe(";X");
     }
 
     [Fact]
@@ -155,7 +156,7 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Col;Name"], []);
 
         var firstLine = NormalizeLineEndings(csv).Split('\n')[0];
-        firstLine.Should().Be("\"Col;Name\"");
+        firstLine.ShouldBe("\"Col;Name\"");
     }
 
     // -----------------------------------------------------------------------
@@ -168,8 +169,8 @@ public sealed class CsvWriterTests
         var csv = _writer.WriteCsv(["Id", "Name", "Value"], []);
 
         var lines = NormalizeLineEndings(csv).Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        lines.Should().HaveCount(1, "only the header row should be present");
-        lines[0].Should().Be("Id;Name;Value");
+        lines.Count().ShouldBe(1, "only the header row should be present");
+        lines[0].ShouldBe("Id;Name;Value");
     }
 
     [Fact]
@@ -177,7 +178,7 @@ public sealed class CsvWriterTests
     {
         var csv = _writer.WriteCsv(["Col1"], []);
 
-        csv.Should().NotBeNullOrEmpty("an empty result must still produce a header");
+        csv.ShouldNotBeNullOrEmpty("an empty result must still produce a header");
     }
 
     // -----------------------------------------------------------------------

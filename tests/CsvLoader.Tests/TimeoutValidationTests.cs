@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace CsvLoader.Tests;
 
@@ -29,10 +29,9 @@ public sealed class TimeoutValidationTests
             "--timeout", "0"
         ]);
 
-        exitCode.Should().Be(1,
+        exitCode.ShouldBe(1,
             "--timeout 0 is not a positive integer and must be rejected at parse time");
-        stderr.Should().Contain("--timeout",
-            "the error message must reference the option that failed validation");
+        stderr.ShouldContain("--timeout");
     }
 
     // -----------------------------------------------------------------------
@@ -47,10 +46,9 @@ public sealed class TimeoutValidationTests
             "--timeout", "-5"
         ]);
 
-        exitCode.Should().Be(1,
+        exitCode.ShouldBe(1,
             "--timeout -5 is negative and must be rejected at parse time");
-        stderr.Should().Contain("--timeout",
-            "the error message must reference the option that failed validation");
+        stderr.ShouldContain("--timeout");
     }
 
     // -----------------------------------------------------------------------
@@ -65,9 +63,9 @@ public sealed class TimeoutValidationTests
             "-t", "0"
         ]);
 
-        exitCode.Should().Be(1,
+        exitCode.ShouldBe(1,
             "-t is the short alias for --timeout and must share the same validation");
-        stderr.Should().NotBeEmpty(
+        stderr.ShouldNotBeEmpty(
             "error message must be written to stderr");
     }
 }
