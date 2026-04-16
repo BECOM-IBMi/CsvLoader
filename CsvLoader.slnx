@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/CsvLoader/CsvLoader.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CsvLoader.Tests/CsvLoader.Tests.csproj" />
+  </Folder>
 </Solution>

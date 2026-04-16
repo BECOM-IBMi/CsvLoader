@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Spectre.Console;
 
 namespace CsvLoader.Tests;
 
@@ -80,5 +81,32 @@ internal sealed class ReferenceFileOutputService : IFileOutputService
 
         await File.WriteAllTextAsync(path, csvContent, Encoding.UTF8);
         return path;
+    }
+}
+
+/// <summary>
+/// Reference (spec) implementation of interactive password prompting (ADR-011).
+/// Han's <c>CsvLoader.Services.PasswordPrompter</c> must produce identical behaviour.
+/// </summary>
+internal static class ReferencePasswordPrompter
+{
+    /// <summary>
+    /// Returns <see langword="null"/> when the console is non-interactive (CI / piped stdin).
+    /// Returns the entered password string when the console is interactive and the user
+    /// supplies a non-empty value.  Empty input is rejected by <see cref="TextPrompt{T}"/>
+    /// validation and the user is re-prompted — no exception is thrown.
+    /// </summary>
+    internal static string? Prompt(IAnsiConsole console)
+    {
+        if (!console.Profile.Capabilities.Interactive)
+            return null;
+
+        return console.Prompt(
+            new TextPrompt<string>("Enter password:")
+                .Secret()
+                .Validate(v => string.IsNullOrWhiteSpace(v)
+                    ? ValidationResult.Error("Password cannot be empty.")
+                    : ValidationResult.Success())
+        );
     }
 }

@@ -40,6 +40,9 @@ public sealed class QueryService
         var username = usernameArg ?? _configuration["CsvLoader:Username"];
         var password = passwordArg ?? _configuration["CsvLoader:Password"];
 
+        if (string.IsNullOrWhiteSpace(password))
+            password = PasswordPrompter.Prompt(_errorConsole);
+
         if (verbose)
         {
             _logger.Debug("Resolved endpoint: {Endpoint}", endpoint);
