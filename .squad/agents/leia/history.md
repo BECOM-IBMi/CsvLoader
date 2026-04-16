@@ -192,3 +192,65 @@ All call sites in tests now include `timeoutArg: null` explicitly to prevent sil
 
 ### From Han (2026-07-16)
 ✅ **Implementation complete**: `--timeout` option fully wired. Both timeout surfaces set consistently. Build clean. 7 new tests validate the feature end-to-end.
+
+## Learnings
+
+### Session: Exit Code and Exception Classification Fix (2026-04-16)
+
+**Context:**
+After fixing ProcessHelper path resolution bug (hardcoded "CsvLoader.exe" → "SqlApiCli"), 3 integration tests still failed:
+1. FR08 - Header row regex test
+2. FR14 - Missing connection value should exit 1, got 3
+3. FR20 - Connection failure should exit 2, got 3
+
+**Root causes identified:**
+
+**Issue 1 — FR08 header row test (TEST BUG):**
+- Test split stdout by `\n` only, leaving `\r` in line: `"IBMREQD\r"`
+- Regex `^[^\s;]+(;[^\s;]+)*$` failed because `\r` is whitespace
+- Fix: Changed split to `stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)` to properly handle Windows CRLF line endings
+
+**Issue 2 & 3 — FR14/FR20 exit codes (IMPLEMENTATION BUG):**
+- PRD exit code table: `1 = Invalid arguments/missing required value`, `2 = Connection/auth failure`, `3 = SQL execution error`
+- QueryService threw `ConnectionException` for BOTH missing values (FR-14) and actual connection failures (FR-20)
+- Both should have returned different exit codes: 1 vs 2
+- Becom.IBMi.SqlApiClient wraps network errors in generic `System.Exception`, which was caught by final catch block and wrapped in `SqlExecutionException` (exit 3)
+
+**Solution implemented:**
+1. Created new `ValidationException` class (exit code 1) for missing required values
+2. Changed FR-14 validation gate (QueryService line 64) from `ConnectionException` → `ValidationException`
+3. Updated exception handling in CallApiAsync to detect network/connection errors and classify as `ConnectionException` instead of `SqlExecutionException`:
+   - Check message/inner exceptions for "error calling sql api", "no such host", "connection" keywords
+   - Check if inner exception is `HttpRequestException` or `SocketException`
+4. Added `ValidationException` handling to both Program.cs and RootCommandBuilder.cs (exit code 1)
+5. Updated all unit tests expecting `ConnectionException` for missing values → now expect `ValidationException`
+
+**Test environment issue discovered:**
+- `appsettings.json` has endpoint + username configured
+- User-secrets has password configured
+- Integration tests couldn't reliably test "missing values" scenario
+- Solution: Tests now explicitly override with empty strings (e.g., `--endpoint ""`) to trigger validation errors
+
+**ProcessHelper binary path bug discovered and fixed:**
+- ProcessHelper looked in `.../bin/Debug/net10.0/SqlApiCli.exe`
+- Actual binary after build was in `.../bin/Debug/net10.0/win-x64/SqlApiCli.exe` (RID-specific)
+- Old binary at non-RID path was from before changes (timestamp 11:49, vs 13:17 for RID path)
+- Updated ProcessHelper.ResolveDefaultBinaryPath() to check RID-specific path first, fall back to non-RID
+
+**Files modified:**
+- Created: `src/CsvLoader/Exceptions/ValidationException.cs`
+- Modified: `src/CsvLoader/Services/QueryService.cs` (validation exception, connection error detection)
+- Modified: `src/CsvLoader/Program.cs` (ValidationException handler)
+- Modified: `src/CsvLoader/Commands/RootCommandBuilder.cs` (ValidationException handler)
+- Modified: `tests/CsvLoader.Tests/StdoutModeTests.cs` (line ending fix)
+- Modified: `tests/CsvLoader.Tests/ExitCodeTests.cs` (explicit empty endpoint)
+- Modified: `tests/CsvLoader.Tests/QueryServicePasswordTests.cs` (4 tests: ConnectionException → ValidationException)
+- Modified: `tests/CsvLoader.Tests/QueryServiceTimeoutTests.cs` (4 tests: ConnectionException → ValidationException)
+- Modified: `tests/CsvLoader.Tests/ProcessHelper.cs` (RID-specific path detection)
+
+**Test results:**
+- Before: 3 failing integration tests (FR08, FR14, FR20)
+- After: All 73 tests passing
+
+**Key insight:**
+Exception types map to exit codes. Missing required values (validation error) is fundamentally different from connection failures. The Becom library's error handling requires message inspection to properly classify errors.

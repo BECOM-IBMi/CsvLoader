@@ -100,6 +100,12 @@ public static class RootCommandBuilder
                 await service.ExecuteAsync(query, output, name, useStdout, endpoint, username, password, timeout, verbose);
                 return 0;
             }
+            catch (ValidationException ex)
+            {
+                errorConsole.MarkupLine($"[bold red]Validation error:[/] {Markup.Escape(ex.Message)}");
+                logger.Error(ex, "Validation error");
+                return 1;
+            }
             catch (ConnectionException ex)
             {
                 errorConsole.MarkupLine($"[bold red]Connection error:[/] {Markup.Escape(ex.Message)}");

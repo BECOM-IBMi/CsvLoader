@@ -80,10 +80,13 @@ public sealed class ExitCodeTests
     [Fact(DisplayName = "FR14 - Missing connection value after merge exits 1")]
     public async Task FR14_MissingConnection_ExitCode_IsOne()
     {
-        // No endpoint, username, or password supplied anywhere
+        // Explicitly override endpoint with empty to trigger validation error
+        // FR-14: "If any connection value is missing after merging all sources..."
         var (exitCode, _, stderr) = await ProcessHelper.RunAsync([
-            "--query", "SELECT 1"
-            // no connection values; assumes no appsettings present in test environment
+            "--query", "SELECT 1",
+            "--endpoint", "",  // explicit empty to override appsettings.json
+            "--username", "testuser",
+            "--password", "testpass"
         ]);
 
         exitCode.Should().Be(1, "missing connection value before network call exits 1");

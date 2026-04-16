@@ -56,8 +56,8 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: null,   // no CLI arg → must resolve to default 20
             verbose: true);
 
-        // ConnectionException for the missing endpoint is expected and acceptable here
-        await act.Should().ThrowAsync<ConnectionException>();
+        // ValidationException for the missing endpoint is expected and acceptable here
+        await act.Should().ThrowAsync<ValidationException>();
 
         logEvents.Should().Contain(
             e => e.RenderMessage().Contains("Resolved timeout: 20s"),
@@ -90,7 +90,7 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: 60,   // explicit CLI arg
             verbose: true);
 
-        await act.Should().ThrowAsync<ConnectionException>();
+        await act.Should().ThrowAsync<ValidationException>();
 
         logEvents.Should().Contain(
             e => e.RenderMessage().Contains("Resolved timeout: 60s"),
@@ -123,7 +123,7 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: null,   // no CLI arg → must fall back to config
             verbose: true);
 
-        await act.Should().ThrowAsync<ConnectionException>();
+        await act.Should().ThrowAsync<ValidationException>();
 
         logEvents.Should().Contain(
             e => e.RenderMessage().Contains("Resolved timeout: 45s"),
@@ -156,7 +156,7 @@ public sealed class QueryServiceTimeoutTests
             timeoutArg: 30,   // CLI arg wins
             verbose: true);
 
-        await act.Should().ThrowAsync<ConnectionException>();
+        await act.Should().ThrowAsync<ValidationException>();
 
         logEvents.Should().Contain(
             e => e.RenderMessage().Contains("Resolved timeout: 30s"),

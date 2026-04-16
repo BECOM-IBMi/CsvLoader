@@ -41,6 +41,12 @@ try
     var parseResult = rootCommand.Parse(args);
     return await parseResult.InvokeAsync(invocationConfig);
 }
+catch (ValidationException ex)
+{
+    errorConsole.MarkupLine($"[bold red]Validation error:[/] {Markup.Escape(ex.Message)}");
+    Log.Error(ex, "Validation error");
+    return 1;
+}
 catch (ConnectionException ex)
 {
     errorConsole.MarkupLine($"[bold red]Connection error:[/] {Markup.Escape(ex.Message)}");

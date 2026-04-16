@@ -61,7 +61,7 @@ public sealed class QueryService
         if (string.IsNullOrWhiteSpace(username)) missing.Add("username (-u / CsvLoader:Username)");
         if (string.IsNullOrWhiteSpace(password)) missing.Add("password (-p / CsvLoader:Password)");
         if (missing.Count > 0)
-            throw new ConnectionException($"Missing required connection values: {string.Join(", ", missing)}.");
+            throw new ValidationException($"Missing required connection values: {string.Join(", ", missing)}.");
 
         // FR-01, FR-02: resolve SQL — file path or literal string
         string sql;
@@ -154,6 +154,21 @@ public sealed class QueryService
         }
         catch (Exception ex) when (ex is not ConnectionException)
         {
+            // The Becom library wraps network errors in generic Exception
+            // Check the message/inner exceptions to classify properly
+            var message = ex.Message?.ToLowerInvariant() ?? string.Empty;
+            var innerMessage = ex.InnerException?.Message?.ToLowerInvariant() ?? string.Empty;
+            
+            if (message.Contains("error calling sql api") || 
+                message.Contains("no such host") ||
+                message.Contains("connection") ||
+                innerMessage.Contains("no such host") ||
+                ex.InnerException is HttpRequestException ||
+                ex.InnerException is System.Net.Sockets.SocketException)
+            {
+                throw new ConnectionException($"Connection error: {ex.Message}", ex);
+            }
+            
             throw new SqlExecutionException($"SQL API call failed: {ex.Message}", ex);
         }
     }

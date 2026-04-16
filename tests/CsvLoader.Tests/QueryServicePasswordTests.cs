@@ -31,7 +31,7 @@ public sealed class QueryServicePasswordTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task FR14_MissingPassword_NonInteractiveConsole_ThrowsConnectionExceptionAboutPassword()
+    public async Task FR14_MissingPassword_NonInteractiveConsole_ThrowsValidationExceptionAboutPassword()
     {
         // Arrange: endpoint + username in config; password absent; non-interactive console
         var config = BuildConfig(new Dictionary<string, string?>
@@ -52,7 +52,7 @@ public sealed class QueryServicePasswordTests
             verbose: false);
 
         // Assert: non-interactive console must not block; missing password must still be reported
-        await act.Should().ThrowAsync<ConnectionException>()
+        await act.Should().ThrowAsync<ValidationException>()
             .WithMessage("*password*");
     }
 
@@ -92,7 +92,7 @@ public sealed class QueryServicePasswordTests
         //   If PasswordPrompter was NOT called, the exception would also mention "password".
         //   Presence of "endpoint" (and absence of "password") proves the prompt was invoked
         //   and its return value was used.
-        var ex = await act.Should().ThrowAsync<ConnectionException>();
+        var ex = await act.Should().ThrowAsync<ValidationException>();
         ex.Which.Message.Should().Contain("endpoint",
             "the endpoint is the only unresolved connection value");
         ex.Which.Message.Should().NotContain("password",
@@ -129,7 +129,7 @@ public sealed class QueryServicePasswordTests
             verbose: false);
 
         // Assert: exception must be about the missing endpoint, not the password
-        var ex = await act.Should().ThrowAsync<ConnectionException>();
+        var ex = await act.Should().ThrowAsync<ValidationException>();
         ex.Which.Message.Should().Contain("endpoint",
             "the only missing value is the endpoint");
         ex.Which.Message.Should().NotContain("password",
@@ -162,7 +162,7 @@ public sealed class QueryServicePasswordTests
             timeoutArg: null,
             verbose: false);
 
-        var ex = await act.Should().ThrowAsync<ConnectionException>();
+        var ex = await act.Should().ThrowAsync<ValidationException>();
         ex.Which.Message.Should().Contain("endpoint");
         ex.Which.Message.Should().NotContain("password",
             "password was supplied via --password CLI arg — PasswordPrompter must not be invoked");

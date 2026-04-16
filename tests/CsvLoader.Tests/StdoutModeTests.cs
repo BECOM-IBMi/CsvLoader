@@ -46,7 +46,8 @@ public sealed class StdoutModeTests
         ]);
 
         exitCode.Should().Be(0);
-        var firstLine = stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var lines = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        var firstLine = lines.FirstOrDefault();
         firstLine.Should().NotBeNullOrEmpty("header row must be present (FR-15)");
         // Header must consist of semicolon-delimited column names (no spaces in a typical column name)
         firstLine!.Should().MatchRegex(@"^[^\s;]+(;[^\s;]+)*$",

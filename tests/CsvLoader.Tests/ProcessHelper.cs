@@ -14,10 +14,40 @@ internal static class ProcessHelper
     /// </summary>
     public static string BinaryPath =>
         Environment.GetEnvironmentVariable("CSVLOADER_BIN")
-        ?? Path.GetFullPath(Path.Combine(
+        ?? ResolveDefaultBinaryPath();
+
+    private static string ResolveDefaultBinaryPath()
+    {
+        // Infer the build configuration from the test assembly output path.
+        // AppContext.BaseDirectory is: ...tests/CsvLoader.Tests/bin/{Config}/net10.0/
+        var parts = AppContext.BaseDirectory
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            .Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]);
+        var binIndex = Array.LastIndexOf(parts, "bin");
+        var configuration = binIndex >= 0 && binIndex + 1 < parts.Length
+            ? parts[binIndex + 1]
+            : "Debug";
+
+        var exeName = OperatingSystem.IsWindows() ? "SqlApiCli.exe" : "SqlApiCli";
+        var rid = OperatingSystem.IsWindows() ? "win-x64" : "linux-x64";
+
+        // Try RID-specific path first (self-contained builds)
+        var ridPath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory,
-            "..", "..", "..", "..", "..", "src", "CsvLoader",
-            "bin", "Debug", "net10.0", "CsvLoader.exe"));
+            "..", "..", "..", "..", "..",
+            "src", "CsvLoader",
+            "bin", configuration, "net10.0", rid, exeName));
+
+        if (File.Exists(ridPath))
+            return ridPath;
+
+        // Fall back to non-RID path
+        return Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..", "..",
+            "src", "CsvLoader",
+            "bin", configuration, "net10.0", exeName));
+    }
 
     /// <summary>Run the binary with the given args; timeout after <paramref name="timeoutMs"/> ms.</summary>
     public static async Task<(int ExitCode, string StdOut, string StdErr)> RunAsync(
