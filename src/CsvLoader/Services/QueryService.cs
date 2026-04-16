@@ -33,6 +33,7 @@ public sealed class QueryService
         string? endpointArg,
         string? usernameArg,
         string? passwordArg,
+        int? timeoutArg,
         bool verbose)
     {
         // FR-12, FR-13: CLI args win; fall back to appsettings / user-secrets
@@ -43,11 +44,15 @@ public sealed class QueryService
         if (string.IsNullOrWhiteSpace(password))
             password = PasswordPrompter.Prompt(_errorConsole);
 
+        var timeoutSeconds = timeoutArg
+            ?? (int.TryParse(_configuration["CsvLoader:Timeout"], out var cfgTimeout) ? cfgTimeout : 20);
+
         if (verbose)
         {
             _logger.Debug("Resolved endpoint: {Endpoint}", endpoint);
             _logger.Debug("Resolved username: {Username}", username);
             _logger.Debug("Resolved password: {Password}", "***");
+            _logger.Debug("Resolved timeout: {Timeout}s", timeoutSeconds);
         }
 
         // FR-14: all three values must be present before any network call
@@ -74,7 +79,7 @@ public sealed class QueryService
             _logger.Debug("Executing SQL: {SQL}", sql);
 
         // Execute against IBM i SQL API
-        string jsonResult = await CallApiAsync(endpoint!, username!, password!, sql);
+        string jsonResult = await CallApiAsync(endpoint!, username!, password!, sql, timeoutSeconds);
 
         // Parse response into column names + rows
         var (columnNames, rows) = ParseJsonResponse(jsonResult);
@@ -113,13 +118,14 @@ public sealed class QueryService
         }
     }
 
-    private async Task<string> CallApiAsync(string endpoint, string username, string password, string sql)
+    private async Task<string> CallApiAsync(string endpoint, string username, string password, string sql, int timeoutSeconds)
     {
         var config = new EndpointConfiguration
         {
             Api = endpoint,
             Uname = username,
-            Password = password
+            Password = password,
+            Timeout = timeoutSeconds
         };
 
         try
@@ -129,7 +135,7 @@ public sealed class QueryService
             using var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(config.Api),
-                Timeout = TimeSpan.FromSeconds(20),
+                Timeout = TimeSpan.FromSeconds(timeoutSeconds),
             };
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

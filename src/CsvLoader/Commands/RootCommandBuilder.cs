@@ -52,6 +52,11 @@ public static class RootCommandBuilder
             Description = "Enable verbose logging (debug level)."
         };
 
+        var timeoutOption = new Option<int?>("--timeout", ["-t"])
+        {
+            Description = "HTTP request timeout in seconds. Default: 20."
+        };
+
         var rootCommand = new RootCommand("SqlApiCli - query IBM i SQL API and export to CSV");
         rootCommand.Add(queryOption);
         rootCommand.Add(outputOption);
@@ -61,12 +66,20 @@ public static class RootCommandBuilder
         rootCommand.Add(usernameOption);
         rootCommand.Add(passwordOption);
         rootCommand.Add(verboseOption);
+        rootCommand.Add(timeoutOption);
 
         // FR-10: --stdout and --name are mutually exclusive -- parse-time validation, exit code 1
         rootCommand.Validators.Add(result =>
         {
             if (result.GetValue(stdoutOption) && result.GetValue(nameOption) is not null)
                 result.AddError("--stdout and --name are mutually exclusive. Use one or the other.");
+        });
+
+        rootCommand.Validators.Add(result =>
+        {
+            var t = result.GetValue(timeoutOption);
+            if (t.HasValue && t.Value <= 0)
+                result.AddError("--timeout must be a positive integer (seconds).");
         });
 
         rootCommand.SetAction(async (ParseResult parseResult) =>
@@ -78,12 +91,13 @@ public static class RootCommandBuilder
             var endpoint = parseResult.GetValue(endpointOption);
             var username = parseResult.GetValue(usernameOption);
             var password = parseResult.GetValue(passwordOption);
+            var timeout = parseResult.GetValue(timeoutOption);
             var verbose = parseResult.GetValue(verboseOption);
 
             try
             {
                 var service = new QueryService(configuration, logger, errorConsole);
-                await service.ExecuteAsync(query, output, name, useStdout, endpoint, username, password, verbose);
+                await service.ExecuteAsync(query, output, name, useStdout, endpoint, username, password, timeout, verbose);
                 return 0;
             }
             catch (ConnectionException ex)

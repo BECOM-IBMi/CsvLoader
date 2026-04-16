@@ -48,6 +48,7 @@ public sealed class QueryServicePasswordTests
             outputFolder: null, outputName: null,
             useStdout: false,
             endpointArg: null, usernameArg: null, passwordArg: null,
+            timeoutArg: null,
             verbose: false);
 
         // Assert: non-interactive console must not block; missing password must still be reported
@@ -84,6 +85,7 @@ public sealed class QueryServicePasswordTests
             outputFolder: null, outputName: null,
             useStdout: false,
             endpointArg: null, usernameArg: null, passwordArg: null,
+            timeoutArg: null,
             verbose: false);
 
         // Assert: validation must report only the missing endpoint, not a missing password.
@@ -123,6 +125,7 @@ public sealed class QueryServicePasswordTests
             outputFolder: null, outputName: null,
             useStdout: false,
             endpointArg: null, usernameArg: null, passwordArg: null,
+            timeoutArg: null,
             verbose: false);
 
         // Assert: exception must be about the missing endpoint, not the password
@@ -156,6 +159,7 @@ public sealed class QueryServicePasswordTests
             outputFolder: null, outputName: null,
             useStdout: false,
             endpointArg: null, usernameArg: null, passwordArg: "clipass",
+            timeoutArg: null,
             verbose: false);
 
         var ex = await act.Should().ThrowAsync<ConnectionException>();
