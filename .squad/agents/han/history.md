@@ -13,12 +13,34 @@
 - CSV delimiter: `;` (semicolon)
 - CSV encoding: UTF-8
 - Default filename: `data_yyyyMMdd_HHmmss.csv` (local time)
-- Config precedence: CLI args > appsettings.json > user-secrets
+- **Config precedence:** CLI args > CWD appsettings.json > user-secrets > exe-dir appsettings.json
 - Exit codes: 0=success, 1=bad args, 2=auth/connection, 3=SQL error, 4=I/O error, 99=unhandled
 - Passwords MUST be masked in all log output
 - `--stdout` and `--name` are mutually exclusive (parse-time error)
 
 ## Learnings
+
+### 2026-07-17 — Multi-Location Configuration (ADR-013)
+
+**What was built:**
+- `Program.cs` — Updated ConfigurationBuilder to load appsettings.json from two locations using absolute paths: exe-dir (defaults) and CWD (project-local overrides). Added verbose logging to show both paths.
+- `ConfigurationTests.cs` — Created helper method `BuildTestConfig(exeDir, cwdDir)` that constructs ConfigurationBuilder with absolute paths, matching production code pattern.
+
+**Key patterns:**
+- **Absolute paths with AddJsonFile:** `Path.Combine(dir, "appsettings.json")` passed directly to `.AddJsonFile(path, optional: true, ...)` avoids SetBasePath complications
+- **4-layer cascade:** exe-dir < user-secrets < CWD < CLI args
+- **Last-one-wins:** ConfigurationBuilder merges sources; later calls override earlier ones for the same key
+- **Empty JSON files throw:** Even with `optional: true`, ConfigurationBuilder throws `InvalidDataException` on empty files (not silently skipped)
+- **Partial merges work:** CWD can override subset of keys; exe-dir values preserved for unspecified keys
+
+**Testing:**
+- Manual tests confirmed CWD config overrides exe-dir (timeout 77 vs 20)
+- All 57 unit tests pass (12 new config tests + 45 existing)
+- Backward compatible: exe-dir alone works when CWD has no file
+
+**Deviation from plan:**
+- Planning doc suggested `.SetBasePath(dir).AddJsonFile("appsettings.json")` pattern, but absolute paths `.AddJsonFile(Path.Combine(...))` proved more reliable and testable
+- Empty file test expectation changed: throws `InvalidDataException` instead of silently skipping (matches actual .NET behavior)
 
 ### 2026-07-16 — `--timeout` / `-t` CLI parameter (ADR-012)
 
