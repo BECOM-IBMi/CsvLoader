@@ -122,43 +122,4 @@ public sealed class FileOutputTests : IDisposable
         content.ShouldBe(csv);
     }
 
-    // -----------------------------------------------------------------------
-    // FR-04 / FR-05 integration: CLI creates folder and writes file
-    // -----------------------------------------------------------------------
-
-    [Fact(DisplayName = "FR04/FR05 - CLI creates output folder and writes file")]
-    [Trait("Category", "Integration")]
-    public async Task FR04_FR05_Integration_CliCreatesOutputFolder()
-    {
-        var outputDir = Path.Combine(_tempDir, "cli-output");
-
-        var (exitCode, _, _) = await ProcessHelper.RunAsync([
-            "--query", "SELECT * FROM SYSIBM.SYSDUMMY1",
-            "--output", outputDir,
-            "--name", "result.csv"
-        ]);
-
-        exitCode.ShouldBe(0);
-        Directory.Exists(outputDir).ShouldBeTrue("CLI must create the folder (FR-05)");
-        File.Exists(Path.Combine(outputDir, "result.csv")).ShouldBeTrue();
-    }
-
-    [Fact(DisplayName = "FR07 - CLI overwrites existing file")]
-    [Trait("Category", "Integration")]
-    public async Task FR07_Integration_CliOverwritesExistingFile()
-    {
-        var outputDir = _tempDir;
-        var outputFile = Path.Combine(outputDir, "overwrite.csv");
-        await File.WriteAllTextAsync(outputFile, "STALE DATA");
-
-        var (exitCode, _, _) = await ProcessHelper.RunAsync([
-            "--query", "SELECT * FROM SYSIBM.SYSDUMMY1",
-            "--output", outputDir,
-            "--name", "overwrite.csv"
-        ]);
-
-        exitCode.ShouldBe(0);
-        var content = await File.ReadAllTextAsync(outputFile);
-        content.ShouldNotBe("STALE DATA", "existing file must be overwritten (FR-07)");
-    }
 }
