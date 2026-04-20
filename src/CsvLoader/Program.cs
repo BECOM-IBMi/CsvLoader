@@ -18,19 +18,19 @@ Log.Logger = new LoggerConfiguration()
 // Build configuration: exe-dir defaults < user-secrets < CWD override < CLI args
 var appDirectory = AppContext.BaseDirectory;
 var cwdDirectory = Directory.GetCurrentDirectory();
-var exeConfigPath = Path.Combine(appDirectory, "appsettings.json");
-var cwdConfigPath = Path.Combine(cwdDirectory, "appsettings.json");
 
 var configuration = new ConfigurationBuilder()
     // Layer 1: Exe directory (defaults)
-    .AddJsonFile(exeConfigPath, optional: true, reloadOnChange: false)
+    .SetBasePath(appDirectory)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     // Layer 2: User-secrets (mid-priority)
     .AddUserSecrets<Program>(optional: true)
     // Layer 3: Current Working Directory (project-local override, highest file precedence)
-    .AddJsonFile(cwdConfigPath, optional: true, reloadOnChange: false)
+    .SetBasePath(cwdDirectory)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     .Build();
 
-Log.Debug("Config loaded: exe={ExePath}, cwd={CwdPath}", exeConfigPath, cwdConfigPath);
+Log.Debug("Config loaded: exe={ExePath}, cwd={CwdPath}", appDirectory, cwdDirectory);
 
 // Stderr AnsiConsole for error rendering (never pollutes stdout)
 var errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
