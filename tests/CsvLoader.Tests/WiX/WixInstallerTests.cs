@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text;
 using Shouldly;
+using Xunit.Sdk;
 
 namespace CsvLoader.Tests.WiX;
 
@@ -21,7 +22,7 @@ public class WixInstallerTests
         "..", "..", "..", "..", "artifacts"
     );
 
-    private static readonly string MsiFileName = "CsvLoaderInstaller.msi";
+    private static readonly string MsiFileName = "SqlApiCliInstaller.msi";
     private static readonly string MsiPath = Path.Combine(ArtifactsDir, MsiFileName);
 
     // Expected size bounds (in bytes)
@@ -29,6 +30,7 @@ public class WixInstallerTests
     private const long MaxSizeBytes = 200 * 1024 * 1024;    // 200 MB
 
     [Fact(DisplayName = "FIR-01: MSI file exists with correct name")]
+    [Trait("Category", "WixIntegration")]
     public void MsiFileExists()
     {
         // Given: The artifacts directory after build
@@ -39,6 +41,7 @@ public class WixInstallerTests
     }
 
     [Fact(DisplayName = "FIR-01: MSI file size is within expected bounds")]
+    [Trait("Category", "WixIntegration")]
     public void MsiFileSizeIsReasonable()
     {
         // Given: An MSI file exists
@@ -63,6 +66,7 @@ public class WixInstallerTests
     }
 
     [Fact(DisplayName = "FIR-01: MSI is a valid ZIP archive (cabinet structure)")]
+    [Trait("Category", "WixIntegration")]
     public void MsiHasValidCabinetStructure()
     {
         // Given: An MSI file exists
@@ -87,6 +91,7 @@ public class WixInstallerTests
     }
 
     [Fact(DisplayName = "FIR-01: MSI contains required manifest files")]
+    [Trait("Category", "WixIntegration")]
     public void MsiContainsRequiredManifestFiles()
     {
         // Given: An MSI file exists
