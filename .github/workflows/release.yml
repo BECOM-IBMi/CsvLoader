@@ -87,20 +87,20 @@ jobs:
       - name: Verify MSI artifact exists
         if: runner.os == 'Windows'
         run: |
-          $msiPath = "src\CsvLoaderInstaller\bin\Release\en-US\CsvLoaderInstaller.msi"
+          $msiPath = "src\CsvLoaderInstaller\bin\Release\en-US\SqlApiCliInstaller.msi"
           if (-not (Test-Path $msiPath)) {
             Write-Error "MSI build completed but artifact not found at $msiPath" -ErrorAction Stop
           }
           Write-Output "MSI verified: $msiPath"
 
-      # Rename MSI to match ZIP naming convention: CsvLoader-{version}-windows-x64.msi
+      # Rename MSI to match ZIP naming convention: SqlApiCli-{version}-windows-x64.msi
       # This ensures consistent artifact naming across platform-specific deliverables
       - name: Rename MSI artifact (Windows only)
         if: runner.os == 'Windows'
         run: >-
           Copy-Item
-          -Path "src\CsvLoaderInstaller\bin\Release\en-US\CsvLoaderInstaller.msi"
-          -Destination "CsvLoader-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.msi"
+          -Path "src\CsvLoaderInstaller\bin\Release\en-US\SqlApiCliInstaller.msi"
+          -Destination "SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.msi"
 
       - name: Zip artifact (Windows)
         if: runner.os == 'Windows'
@@ -128,8 +128,8 @@ jobs:
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: CsvLoader-${{ needs.version.outputs.semVer }}-installer
-          path: CsvLoader-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.msi
+          name: SqlApiCli-${{ needs.version.outputs.semVer }}-installer
+          path: SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.msi
 
   release:
     needs: [version, build]

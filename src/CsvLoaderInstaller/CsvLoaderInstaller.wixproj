@@ -4,7 +4,7 @@
   
   <PropertyGroup>
     <OutputType>WiXInstaller</OutputType>
-    <OutputName>CsvLoaderInstaller</OutputName>
+    <OutputName>SqlApiCliInstaller</OutputName>
     <IntermediateOutputPath>obj\</IntermediateOutputPath>
     <OutputPath>bin\</OutputPath>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
