@@ -70,6 +70,38 @@ jobs:
           -p:InformationalVersion="${{ needs.version.outputs.informationalVersion }}"
           -o publish/${{ matrix.rid }}
 
+      # WiX Windows Installer build - Windows runner only
+      # Generates MSI from the published binaries + WiX source (Product.wxs)
+      # ProductVersion injected from GitVersion for semantic versioning
+      # PublishDir points to the dotnet publish output directory
+      - name: Build WiX MSI (Windows only)
+        if: runner.os == 'Windows'
+        run: >-
+          dotnet build src/CsvLoaderInstaller/CsvLoaderInstaller.wixproj
+          -c Release
+          -p:PublishDir="${{ github.workspace }}\publish\${{ matrix.rid }}"
+          -p:ProductVersion="${{ needs.version.outputs.semVer }}"
+
+      # Verify the MSI was created - fail fast if build succeeded but output is missing
+      # This prevents silent failures where the WiX build appears to succeed but produces no artifact
+      - name: Verify MSI artifact exists
+        if: runner.os == 'Windows'
+        run: |
+          $msiPath = "src\CsvLoaderInstaller\bin\Release\en-US\CsvLoaderInstaller.msi"
+          if (-not (Test-Path $msiPath)) {
+            Write-Error "MSI build completed but artifact not found at $msiPath" -ErrorAction Stop
+          }
+          Write-Output "MSI verified: $msiPath"
+
+      # Rename MSI to match ZIP naming convention: CsvLoader-{version}-windows-x64.msi
+      # This ensures consistent artifact naming across platform-specific deliverables
+      - name: Rename MSI artifact (Windows only)
+        if: runner.os == 'Windows'
+        run: >-
+          Copy-Item
+          -Path "src\CsvLoaderInstaller\bin\Release\en-US\CsvLoaderInstaller.msi"
+          -Destination "CsvLoader-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.msi"
+
       - name: Zip artifact (Windows)
         if: runner.os == 'Windows'
         run: >-
@@ -83,11 +115,21 @@ jobs:
           zip SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.zip
           -j publish/${{ matrix.rid }}/SqlApiCli
 
+      # Upload ZIP as before
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}
           path: SqlApiCli-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.zip
+
+      # Upload MSI as separate artifact (Windows only)
+      # Tagged for easy identification as an installer
+      - name: Upload MSI artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CsvLoader-${{ needs.version.outputs.semVer }}-installer
+          path: CsvLoader-${{ needs.version.outputs.semVer }}-${{ matrix.rid }}.msi
 
   release:
     needs: [version, build]
@@ -102,10 +144,12 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      # Create GitHub Release with all artifacts (ZIP + MSI)
+      # Files glob expanded to include both binary ZIPs and installer MSI
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.version.outputs.semVer }}
           name: v${{ needs.version.outputs.semVer }}
-          files: artifacts/*.zip
+          files: artifacts/*
           generate_release_notes: true
