@@ -193,6 +193,136 @@ All call sites in tests now include `timeoutArg: null` explicitly to prevent sil
 ### From Han (2026-07-16)
 ✅ **Implementation complete**: `--timeout` option fully wired. Both timeout surfaces set consistently. Build clean. 7 new tests validate the feature end-to-end.
 
+## WiX Installer Phase 1 Learnings (2026-04-27)
+
+### Test Categorization & CI Filtering Patterns
+
+**What was built:**
+- `tests/CsvLoader.Tests/WiX/WixInstallerTests.cs` — xUnit suite with 12 tests across unit + integration categories
+- `tests/WiX/install-test.ps1` — Manual PowerShell validation script covering 7 test phases
+
+**Test organization patterns:**
+- **Unit tests (no trait):** Run on all platforms in CI via `--filter "Category!=WixIntegration"`
+  - MSI file exists (FIR-01)
+  - File size bounds (5-200 MB) (FIR-01)
+  - Cabinet structure valid (FIR-01)
+  - Manifest files present (FIR-01)
+  
+- **Integration tests ([Trait("Category", "WixIntegration")]):** Windows-only, skipped on Linux
+  - Silent install + registry creation (FIR-02)
+  - Binary location validation (FIR-03)
+  - Uninstall cleanup (FIR-04)
+  - Optional PATH integration (FIR-05)
+  - Optional Start Menu (FIR-06)
+  - Version upgrade scenario (FIR-07, FIR-08)
+  - Silent install flag support (FIR-10)
+  - Installed binary functionality (FIR-01)
+
+**FIR-to-test mapping:**
+All 10 Functional Installer Requirements covered:
+- FIR-01 (MSI creation): Unit tests (file/structure) + integration test (functionality) + manual script
+- FIR-02 (metadata): Integration test + manual script
+- FIR-03 (Program Files): Integration test + manual script
+- FIR-04 (uninstall): Integration test + manual script
+- FIR-05 (PATH): Integration test + manual script
+- FIR-06 (shortcuts): Integration test + manual script
+- FIR-07/08 (upgrade): Integration test + manual script
+- FIR-09 (exit codes): Manual observation
+- FIR-10 (silent): Unit test (size check) + integration test + manual script
+
+**CI filter strategy:**
+```bash
+# All platforms (every PR/push)
+dotnet test --filter "Category!=WixIntegration"
+
+# Windows CI only (gated via if: runner.os == 'Windows')
+dotnet test --filter "Category==WixIntegration"
+
+# Full suite (manual or staging VMs)
+dotnet test
+```
+
+### Manual Testing Phases & Validation Strategy
+
+**PowerShell script phases (install-test.ps1):**
+
+| Phase | Scenario | Validates | Output |
+|-------|----------|-----------|--------|
+| 1 | Silent install (`/quiet`) | MSI execution, exit code 0 | Timestamp, result |
+| 2 | Registry + binary location | HKLM entries, `Program Files\CsvLoader\CsvLoader.exe` | Registry keys, file info |
+| 3 | Binary functionality | `CsvLoader --help` succeeds | Exit code, version |
+| 4 | Start Menu creation | Shortcuts present in Start Menu | Path verification |
+| 5 | PATH environment | CsvLoader in PATH post-install | Environment check |
+| 6 | Upgrade scenario | v1.0.0 → v1.1.0 registry update | DisplayVersion change |
+| 7 | Uninstall cleanup | File removed, registry cleaned | Residual check |
+
+**Log output pattern:**
+```
+[2026-07-16 14:23:45] [INFO] ✓ CsvLoader.exe installed to Program Files\CsvLoader
+[2026-07-16 14:23:46] [PASS] Registry: DisplayName is correct
+[2026-07-16 14:23:47] [PASS] CsvLoader --help exit code is 0
+```
+
+**Script parameters for flexibility:**
+- `MsiPath` — Explicit MSI location (default: `./artifacts/CsvLoaderInstaller.msi`)
+- `TestAddToPath` — Include PATH scenario (default: skip, too interactive)
+- `TestStartMenuShortcuts` — Include shortcuts (default: skip)
+- `SkipUninstall` — Leave app installed for manual inspection (default: cleanup)
+
+### Test Limitations & QA Sign-Off Checklist
+
+**Known limitations (v1.0):**
+- Cannot simulate GUI dialog clicks without WinAppDriver (future v1.1+)
+- PATH reload requires process restart or explicit environment load
+- Non-admin user install scenario untested (admin-only in v1.0)
+- Per-user scope not implemented (deferred to v1.1+)
+- MSI code signing not tested (unsigned in v1.0)
+- Rollback on install failure not tested (disk-full scenarios skipped)
+
+**QA sign-off gate (Release blocking):**
+```
+Pre-release checklist:
+☐ All unit tests pass in CI (all platforms)
+☐ All integration tests pass (Windows CI runner)
+☐ Manual PowerShell script passes on Windows 10
+☐ Manual PowerShell script passes on Windows 11
+☐ Manual PowerShell script passes on Windows Server 2022
+☐ Upgrade scenario tested (v1.0.0 → v1.1.0)
+☐ Uninstall cleanup verified
+☐ Add/Remove Programs display correct
+☐ PATH integration works (if tested)
+☐ Start Menu shortcuts work (if tested)
+☐ No known test gaps blocking release
+```
+
+**Future phases (v1.1+):**
+- UI automation tests (WinAppDriver) for dialog interaction
+- Performance baseline (install/uninstall time thresholds)
+- Repair/Modify option testing
+- Per-user installation scope tests
+- Multi-language localization validation
+
+### CI/CD Integration Patterns
+
+**In `.github/workflows/ci.yml` (every PR):**
+```yaml
+- name: Run WiX Artifact Tests
+  run: dotnet test --filter "Category!=WixIntegration"
+```
+
+**In `.github/workflows/release.yml` (post-MSI-build):**
+```yaml
+- name: Run WiX Artifact Tests
+  run: dotnet test --filter "Category!=WixIntegration"
+
+# Manual QA: Run .\tests\WiX\install-test.ps1 on staging VM
+```
+
+**Expected CI behavior:**
+- Linux runners: Unit tests only (skips WixIntegration)
+- Windows runners: Unit + Integration tests
+- Release gate: All tests must pass + manual PowerShell validation on staging VMs
+
 ## Learnings
 
 ### Session: Exit Code and Exception Classification Fix (2026-04-16)
