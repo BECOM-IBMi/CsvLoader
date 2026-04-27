@@ -1,0 +1,43 @@
+<Project>
+  <!-- WiX Installer Project for CsvLoader -->
+  <!-- Builds MSI package from Product.wxs; versioning and publish paths injected at build time -->
+  
+  <PropertyGroup>
+    <OutputType>WiXInstaller</OutputType>
+    <OutputName>CsvLoaderInstaller</OutputName>
+    <IntermediateOutputPath>obj\</IntermediateOutputPath>
+    <OutputPath>bin\</OutputPath>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <Cultures>en-US</Cultures>
+
+    <!-- Product version will be injected by CI/CD (e.g., from GitVersion) -->
+    <!-- Example: dotnet build -p:ProductVersion=1.0.0 -->
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0.0</ProductVersion>
+
+    <!-- Publish directory path will be injected by CI/CD -->
+    <!-- Example: dotnet build -p:PublishDir=..\CsvLoader\bin\Release\net10.0\win-x64\publish -->
+    <PublishDir Condition="'$(PublishDir)' == ''">..\..\CsvLoader\bin\Release\net10.0\win-x64\publish</PublishDir>
+
+    <!-- Fixed UpgradeCode GUID (stable across all versions) -->
+    <!-- This ensures Windows correctly detects upgrades between versions -->
+    <UpgradeCode>7C3E4A5B-8F2D-4A1C-9E6B-3F2C4D5E6A7B</UpgradeCode>
+  </PropertyGroup>
+
+  <!-- WiX NuGet package reference (v5.x for .NET 6.0+ compatibility) -->
+  <!-- Restore via: dotnet restore or dotnet build -->
+  <ItemGroup>
+    <PackageReference Include="WiX" Version="5.x" />
+  </ItemGroup>
+
+  <!-- Define variables for use in Product.wxs -->
+  <ItemGroup>
+    <WixDefine Include="ProductVersion=$(ProductVersion)" />
+    <WixDefine Include="PublishDir=$(PublishDir)" />
+    <WixDefine Include="UpgradeCode=$(UpgradeCode)" />
+  </ItemGroup>
+
+  <!-- Reference WiX source files -->
+  <ItemGroup>
+    <WixCompile Include="Product.wxs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- 
+    CsvLoader WiX Installer — Main Product Definition
+    
+    Scaffold: This file defines the product structure, directory layout, components, and features.
+    Versioning is property-injected at build time from GitVersion by CI/CD.
+    
+    Build output: bin\Release\en-US\CsvLoaderInstaller.msi
+  -->
+  
+  <Product
+    Id="*"
+    Name="CsvLoader"
+    Language="1033"
+    Version="$(var.ProductVersion)"
+    Manufacturer="CsvLoader Team"
+    UpgradeCode="$(var.UpgradeCode)">
+
+    <!-- Package metadata and installation scope -->
+    <Package
+      InstallerVersion="500"
+      Compressed="yes"
+      InstallScope="perMachine"
+      Description="CsvLoader — IBM i SQL API CSV Export Tool" />
+
+    <!-- Allow in-place upgrade of newer versions over older ones -->
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of CsvLoader is already installed."
+      AllowDowngrades="no"
+      AllowSameVersionUpgrades="no" />
+
+    <!-- Media: single CAB embedded in MSI -->
+    <Media Id="1" Cabinet="CsvLoader.cab" EmbedCab="yes" />
+
+    <!-- Directory structure: TARGETDIR → ProgramFilesFolder → InstallFolder -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="CsvLoader" />
+      </Directory>
+      
+      <!-- Start Menu folder structure (will be used if shortcuts are enabled) -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="CsvLoader" />
+      </Directory>
+    </Directory>
+
+    <!-- Main product feature containing all components -->
+    <Feature
+      Id="CsvLoaderFeature"
+      Title="CsvLoader"
+      Level="1"
+      Description="Installs CsvLoader CLI tool with optional PATH integration and Start Menu shortcuts">
+
+      <!-- Executable component -->
+      <ComponentRef Id="CsvLoaderExecutable" />
+      
+      <!-- Registry entry for Add/Remove Programs discovery -->
+      <ComponentRef Id="RegistryAddRemovePrograms" />
+      
+      <!-- Optional: Start Menu shortcuts (disabled by default in this scaffold) -->
+      <ComponentRef Id="StartMenuShortcuts" />
+      
+      <!-- Optional: PATH environment variable integration (disabled by default in this scaffold) -->
+      <ComponentRef Id="PathEnvironmentVariable" />
+    </Feature>
+
+    <!-- Component 1: CsvLoader executable file -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="CsvLoaderExecutable" Guid="*" Win64="yes">
+        <!-- 
+          Source path uses $(var.PublishDir) injected at build time by CI/CD.
+          CI/CD example: dotnet build -p:PublishDir=../CsvLoader/bin/Release/net10.0/win-x64/publish
+          File location: INSTALLFOLDER\CsvLoader.exe
+        -->
+        <File
+          Id="CsvLoaderExeFile"
+          Source="$(var.PublishDir)\CsvLoader.exe"
+          KeyPath="yes"
+          Checksum="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Component 2: Registry entries for Add/Remove Programs and product discovery -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="RegistryAddRemovePrograms" Guid="*" Win64="yes">
+        <!-- 
+          Registry path: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\CsvLoader
+          These entries make the product discoverable in Add/Remove Programs (Control Panel).
+        -->
+        <RegistryKey Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\CsvLoader">
+          <RegistryValue Type="string" Name="DisplayName" Value="CsvLoader" />
+          <RegistryValue Type="string" Name="DisplayVersion" Value="$(var.ProductVersion)" />
+          <RegistryValue Type="string" Name="Publisher" Value="CsvLoader Team" />
+          <RegistryValue Type="string" Name="InstallLocation" Value="[INSTALLFOLDER]" />
+          <RegistryValue Type="string" Name="UninstallString" Value="msiexec.exe /x [ProductCode]" />
+          <RegistryValue Type="string" Name="QuietUninstallString" Value="msiexec.exe /x [ProductCode] /quiet /norestart" />
+          <RegistryValue Type="dword" Name="NoModify" Value="1" />
+          <RegistryValue Type="dword" Name="NoRepair" Value="1" />
+        </RegistryKey>
+
+        <!-- 
+          Optional: Additional registry entry for product version tracking (future use).
+          Path: HKEY_LOCAL_MACHINE\Software\CsvLoader
+        -->
+        <RegistryKey Root="HKLM" Key="Software\CsvLoader">
+          <RegistryValue Type="string" Name="InstallPath" Value="[INSTALLFOLDER]" KeyPath="yes" />
+          <RegistryValue Type="string" Name="Version" Value="$(var.ProductVersion)" />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+
+    <!-- Component 3: Start Menu shortcuts (optional, user-selectable in v1.1+) -->
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="StartMenuShortcuts" Guid="*" Win64="yes">
+        <!-- 
+          Shortcut 1: "CsvLoader Help" - runs CsvLoader.exe with help flag
+          This allows users to quickly view the help documentation from the Start Menu.
+        -->
+        <Shortcut
+          Id="CsvLoaderHelpShortcut"
+          Name="CsvLoader Help"
+          Target="[INSTALLFOLDER]CsvLoader.exe"
+          Arguments="--help"
+          Description="Display CsvLoader help and usage information" />
+
+        <!-- 
+          Shortcut 2: "Installation Folder" → opens the installation directory in Explorer
+          Helps users access the executable directly.
+        -->
+        <Shortcut
+          Id="InstallationFolderShortcut"
+          Name="Installation Folder"
+          Target="[INSTALLFOLDER]"
+          Description="Open the CsvLoader installation folder" />
+
+        <!-- Remove the Start Menu folder on uninstall if empty -->
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Component 4: PATH environment variable integration (optional, user-selectable in v1.1+) -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="PathEnvironmentVariable" Guid="*" Win64="yes">
+        <!-- 
+          EnvironmentVariable element manages system PATH modification.
+          Action="set" with append="yes" adds INSTALLFOLDER to the end of PATH.
+          This allows users to run "CsvLoader" from any command prompt without the full path.
+          
+          Note: PATH modification requires elevated privileges (already granted by InstallScope="perMachine").
+        -->
+        <Environment
+          Id="PATH"
+          Name="PATH"
+          Value="[INSTALLFOLDER]"
+          Permanent="no"
+          Part="last"
+          Action="set"
+          System="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Standard WiX UI: Minimal dialogs (welcome, setup type, ready, complete) -->
+    <UI Id="WixUI_Minimal">
+      <!-- 
+        Use the standard WiX UI library with minimal dialogs.
+        This scaffold uses the built-in WixUI_Minimal set (no custom dialogs).
+        
+        Future enhancement: WixUI_FeatureTree for more control over optional features.
+      -->
+      <UIRef Id="WixUI_Minimal" />
+    </UI>
+
+    <!-- License file reference for the WiX UI -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+  </Product>
+</Wix>
