@@ -182,6 +182,89 @@
   - `appsettings.json`: Add `CsvLoader:Timeout` key (default 20)
 - **Consequence**: 3 files, ~15 lines. Fully backward-compatible. Both timeout surfaces kept in sync.
 
+## WiX Installer Implementation — Phase 1
+
+### ADR-013: Property-Based WiX Build with CI/CD Injection
+- **Status**: Active
+- **Author**: Han
+- **Date**: 2026-04-27
+- **Context**: WiX MSI build must integrate into GitHub Actions release workflow; version and publish paths vary per environment
+- **Decision**: All dynamic values (ProductVersion, PublishDir, UpgradeCode) injected via WiX property system at build time; no hardcoded paths in `.wxs`
+- **Design**: `.wixproj` has fallback defaults; CI/CD overrides via `-p:ProductVersion=` and `-p:PublishDir=` flags to `dotnet build`
+- **Consequence**: Release.yml must pass both properties; scaffolds compile cleanly with placeholders; decouples source from pipeline details
+
+### ADR-014: Fixed UpgradeCode GUID for In-Place Upgrades
+- **Status**: Active
+- **Author**: Han
+- **Date**: 2026-04-27
+- **Context**: Windows Installer uses UpgradeCode to detect version upgrades
+- **Decision**: UpgradeCode is hardcoded stable GUID (`7C3E4A5B-8F2D-4A1C-9E6B-3F2C4D5E6A7B`); ProductCode set to `*` (auto-generated)
+- **Rationale**: Changing UpgradeCode between releases causes side-by-side installs (confuses users). Stable UpgradeCode enables in-place upgrades (v1.0 → v1.1 → v2.0)
+- **Consequence**: If product scope changes, new UpgradeCode required for separate product line
+
+### ADR-015: Per-Machine Installation to Program Files
+- **Status**: Active
+- **Author**: Han
+- **Date**: 2026-04-27
+- **Context**: PRD § 4 specifies installer; standard Windows convention for CLI tools
+- **Decision**: `InstallScope="perMachine"` with installation to `Program Files\CsvLoader`
+- **Rationale**: Simpler to manage and discover (all users); standard Windows convention; aligns with Add/Remove Programs expectations
+- **Consequence**: Requires admin privileges to install; per-user scope deferred to v1.1+
+
+### ADR-016: Optional Features Scaffolded But Inactive in v1.0
+- **Status**: Active
+- **Author**: Han
+- **Date**: 2026-04-27
+- **Context**: PRD § 3 mentions optional user choices (PATH, Start Menu); WixUI_Minimal doesn't support feature selection
+- **Decision**: Start Menu shortcuts and PATH integration defined in Product.wxs but not wired to user choice dialogs; both installed by default
+- **Rationale**: Reduces v1.0 complexity; WixUI_FeatureTree upgrade deferred to v1.1 with minimal code changes
+- **Consequence**: v1.1 must switch to WixUI_FeatureTree to expose feature selection UI
+
+### ADR-017: Serilog to Stderr Routing in WiX Build Logs
+- **Status**: Active
+- **Author**: Wedge
+- **Date**: 2026-04-27
+- **Context**: CI/CD integration requires fail-fast validation; MSI build output must be inspected for errors
+- **Decision**: GitHub Actions workflow includes explicit MSI artifact verification step: checks file exists at expected path before upload
+- **Rationale**: Catches build-but-no-output scenarios; prevents silent failures; upstream of upload step
+- **Consequence**: MSI build failure blocks entire release; debugging requires GitHub Actions logs
+
+### ADR-018: Windows-Only WiX Build Gating in CI/CD
+- **Status**: Active
+- **Author**: Wedge
+- **Date**: 2026-04-27
+- **Context**: WiX toolset only available on Windows; Linux releases need ZIP only
+- **Decision**: All WiX steps in release.yml gated with `if: runner.os == 'Windows'`; MSI produced only on Windows runner
+- **Rationale**: Prevents build failures on Linux runners; separate concerns (WiX for Windows, ZIP for both)
+- **Consequence**: GitHub Release assets vary by runner: Windows runner produces ZIP + MSI, Linux runner produces ZIP only
+
+### ADR-019: xUnit Unit Tests for WiX Artifact Validation
+- **Status**: Active
+- **Author**: Leia
+- **Date**: 2026-04-27
+- **Context**: Need fast CI feedback on MSI build integrity without requiring Windows or admin
+- **Decision**: 4 unit tests check MSI file existence, size bounds (5-200 MB), cabinet structure, and manifest files
+- **Rationale**: Unit tests run on all platforms; catch build failures early; no Windows/admin requirement
+- **Consequence**: Unit tests `dotnet test --filter "Category!=WixIntegration"` run in all CI jobs
+
+### ADR-020: Integration Tests Gated to Windows with [Trait] Filtering
+- **Status**: Active
+- **Author**: Leia
+- **Date**: 2026-04-27
+- **Context**: MSI installation, registry manipulation, and cleanup require Windows and admin privileges
+- **Decision**: 8 integration tests marked with `[Trait("Category", "WixIntegration")]`; filtered out on non-Windows runners
+- **Rationale**: `dotnet test --filter "Category!=WixIntegration"` in CI skips these; manual or Windows CI runners run full suite
+- **Consequence**: Integration tests do NOT run on Linux CI; only unit tests; Windows CI runner validates full scope
+
+### ADR-021: Manual PowerShell Script for End-to-End QA
+- **Status**: Active
+- **Author**: Leia
+- **Date**: 2026-04-27
+- **Context**: xUnit tests cannot simulate interactive dialogs, environment variable reloads, or multi-phase upgrade scenarios
+- **Decision**: `tests/WiX/install-test.ps1` provides 7-phase manual validation (silent install, binary check, cleanup, upgrade, etc.)
+- **Rationale**: Final QA sign-off; covers gaps xUnit cannot; runs on staging VMs pre-release
+- **Consequence**: Release gate includes PowerShell script execution on Windows 10, 11, Server 2022
+
 ## Governance
 
 - All meaningful changes require team consensus

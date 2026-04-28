@@ -1,0 +1,16 @@
+# WiX Ignore Patterns
+
+# Build artifacts
+obj/
+bin/
+
+# Intermediate WiX files
+*.wixpdb
+
+# Visual Studio cache
+.vs/
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db

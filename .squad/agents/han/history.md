@@ -114,3 +114,53 @@
 
 ### From Leia (2026-07-16)
 ✅ **Tests complete**: 7 new timeout tests (4 unit + 3 integration). 45/45 total tests pass. Precedence and validation both validated. Feature ready to ship.
+
+## WiX Installer Phase 1 Learnings (2026-04-27)
+
+### Project Structure & Versioning Patterns
+
+**What was built:**
+- `src/CsvLoaderInstaller/CsvLoaderInstaller.wixproj` — SDK-style WiX v5.1.0 project targeting .NET 6.0
+- `src/CsvLoaderInstaller/Product.wxs` — Main WiX source with 4 core components (executable, registry, shortcuts, PATH)
+- `src/CsvLoaderInstaller/License.rtf` — Placeholder license (production to replace)
+- `src/CsvLoaderInstaller/.wixignore` — CI/CD exclusion patterns
+
+**Key design patterns:**
+- **Property-based versioning:** All dynamic values (ProductVersion, PublishDir, UpgradeCode) injected via WiX property system at build time
+- **Fallback defaults:** `.wixproj` has placeholder defaults; CI/CD overrides via `-p:ProductVersion=` and `-p:PublishDir=` flags
+- **Fixed UpgradeCode GUID:** Stable GUID (`7C3E4A5B-8F2D-4A1C-9E6B-3F2C4D5E6A7B`) across versions enables in-place upgrades without side-by-side installs
+- **Per-machine scope:** `InstallScope="perMachine"` with `Program Files\CsvLoader` (standard Windows convention)
+- **Optional features scaffolded:** Start Menu shortcuts and PATH integration defined but wired to default (all installed); v1.0 uses WixUI_Minimal
+- **Registry structure:** Two trees — HKLM Add/Remove Programs (auto-populated) + HKLM CsvLoader (custom product discovery)
+
+**Registry mapping:**
+```
+HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\CsvLoader
+  └─ DisplayName, Publisher, DisplayVersion, UninstallString (auto-populated by MSI)
+
+HKEY_LOCAL_MACHINE\Software\CsvLoader
+  └─ InstallPath, Version (manual entries for reference)
+```
+
+**Build output:** `bin\Release\en-US\CsvLoaderInstaller.msi`
+
+**Implications for Han's future work:**
+- WiX projects need property precedence discipline; changes to `.wxs` paths must align with property names CI/CD passes
+- UpgradeCode governance: if product scope changes (e.g., separate CsvLoaderServer), new UpgradeCode needed
+- Optional feature UI upgrade (WixUI_FeatureTree) in v1.1 requires minimal `.wxs` changes but involves dialog wiring
+
+### Critical Risks & Integration Notes
+
+**For CI/CD teams:**
+1. **WiX Toolset availability** — GitHub Actions Windows runner may lack WiX Toolset 5.x; recommend `dotnet workload install wix`
+2. **Version format** — GitVersion outputs semVer; WiX requires Windows version format (e.g., `1.0.0.0`); may need strip
+3. **Path injection precision** — Typos in PublishDir parameter → build fails; document exact path from dotnet publish step
+
+**For local testing:**
+- Requires WiX Toolset 5.x installation on Windows
+- Build command: `dotnet build src/CsvLoaderInstaller/CsvLoaderInstaller.wixproj -p:ProductVersion=1.0.0 -p:PublishDir=<path-to-publish>`
+- Clean build: `dotnet clean && dotnet build` if scaffold changes
+
+**Registry cleanup on uninstall:**
+- Executable and registry entries removed; user-created config files left untouched (standard Windows practice)
+- Future enhancement: log message inviting manual cleanup if config files present post-uninstall
