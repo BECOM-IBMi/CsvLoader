@@ -70,6 +70,12 @@ jobs:
           -p:InformationalVersion="${{ needs.version.outputs.informationalVersion }}"
           -o publish/${{ matrix.rid }}
 
+      # Restore WiX NuGet packages (must happen before WiX build)
+      # The WiX SDK is distributed as a NuGet package
+      - name: Restore WiX packages (Windows only)
+        if: runner.os == 'Windows'
+        run: dotnet restore src/CsvLoaderInstaller/CsvLoaderInstaller.wixproj
+
       # WiX Windows Installer build - Windows runner only
       # Generates MSI from the published binaries + WiX source (Product.wxs)
       # ProductVersion injected from GitVersion for semantic versioning
