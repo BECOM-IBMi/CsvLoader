@@ -15,7 +15,7 @@
     Language="1033"
     Version="$(var.ProductVersion)"
     Manufacturer="BECOM Electronics GmbH"
-    UpgradeCode="$(var.UpgradeCode)">
+    UpgradeCode="472F7B83-6787-4E4D-80EF-589CE863513F">
 
     <!-- Package metadata and installation scope -->
     <Package
