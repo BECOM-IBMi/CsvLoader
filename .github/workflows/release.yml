@@ -70,7 +70,13 @@ jobs:
           -p:InformationalVersion="${{ needs.version.outputs.informationalVersion }}"
           -o publish/${{ matrix.rid }}
 
-      # WiX Windows Installer build - Windows runner only
+      # Install WiX v7 toolset (Windows only)
+      # Required for building the MSI installer
+      - name: Install WiX v7
+        if: runner.os == 'Windows'
+        run: dotnet workload install wix
+
+      # WiX Windows Installer build
       # Generates MSI from the published binaries + WiX source (Product.wxs)
       # ProductVersion injected from GitVersion for semantic versioning
       # PublishDir points to the dotnet publish output directory

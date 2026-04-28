@@ -1,4 +1,4 @@
-<Project>
+<Project Sdk="WiX">
   <PropertyGroup>
     <OutputType>WiXInstaller</OutputType>
     <OutputName>SqlApiCliInstaller</OutputName>
@@ -20,7 +20,4 @@
   <ItemGroup>
     <WixCompile Include="Product.wxs" />
   </ItemGroup>
-
-  <!-- Import WiX v7 build targets from system installation -->
-  <Import Project="$(ProgramFiles)\WiX Toolset v7\msbuild\wix.targets" />
 </Project>
