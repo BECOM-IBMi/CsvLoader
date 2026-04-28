@@ -1,4 +1,4 @@
-<Project Sdk="WiX">
+<Project Sdk="WiX/7.0.0">
   <PropertyGroup>
     <OutputType>WiXInstaller</OutputType>
     <OutputName>SqlApiCliInstaller</OutputName>
