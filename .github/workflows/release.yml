@@ -84,10 +84,7 @@ jobs:
       - name: Build WiX MSI (Windows only)
         if: runner.os == 'Windows'
         run: >-
-          wix build src/CsvLoaderInstaller/Product.wxs 
-            -o "${{ github.workspace }}\publish\${{ matrix.rid }}\SqlApiCliInstaller.msi" 
-            -d ProductVersion=${{ needs.version.outputs.semVer }}
-            --accept-osmf-eula
+          wix build src/CsvLoaderInstaller/Product.wxs -o "${{ github.workspace }}\publish\${{ matrix.rid }}\SqlApiCliInstaller.msi" -d ProductVersion=${{ needs.version.outputs.semVer }} --accept-osmf-eula
 
       # Verify the MSI was created - fail fast if build succeeded but output is missing
       # This prevents silent failures where the WiX build appears to succeed but produces no artifact
