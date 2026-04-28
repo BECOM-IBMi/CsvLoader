@@ -75,7 +75,7 @@ jobs:
       # Chocolatey is pre-installed on windows-latest runners
       - name: Install WiX v7
         if: runner.os == 'Windows'
-        run: choco install wixtoolset -y
+        run: dotnet tool install --global wix
 
       # WiX Windows Installer build
       # Generates MSI from the published binaries + WiX source (Product.wxs)
