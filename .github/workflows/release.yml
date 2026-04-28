@@ -70,12 +70,12 @@ jobs:
           -p:InformationalVersion="${{ needs.version.outputs.informationalVersion }}"
           -o publish/${{ matrix.rid }}
 
-      # Install WiX v7 toolset via Chocolatey (Windows only)
+      # Install WiX v7 toolset as a dotnet tool (Windows only)
       # Required for building the MSI installer
-      # Chocolatey is pre-installed on windows-latest runners
+      # The .wixproj SDK reference will automatically find the installed toolset
       - name: Install WiX v7
         if: runner.os == 'Windows'
-        run: dotnet tool install wix
+        run: dotnet tool install -g wix
 
       # WiX Windows Installer build
       # Generates MSI from the published binaries + WiX source (Product.wxs)
