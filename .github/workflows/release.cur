@@ -80,97 +80,26 @@ jobs:
           name: Zipped
           path: ${{ env.ArtifactsDirectory }}
 
-  windows-release:
-    needs: [version, build]
-    runs-on: windows-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: Zipped
-          path: ${{github.workspace}}\dnl
-          merge-multiple: true
-
-      - name: Copy
-        run: |
-          cp -r ${{github.workspace}}\dnl\win-x64\* ${{ env.ArtifactsDirectory }}\
-
-      - name: Install Advanced Installer
-        uses: caphyon/advinst-github-action@main
-        with:
-          advinst-enable-automation: 'true'
-          
-      - name: Build MSI
-        run: |
-          .\update_aip.gha.ps1 ${{ env.semVer }}
-      
-      - name: Zip artifact (Windows)
-        if: runner.os == 'Windows'
-        run: >-
-          Compress-Archive
-          -Path ${{ env.ArtifactsDirectory }}\*
-          -DestinationPath ${{github.workspace}}\installer\SqlApiCli-${{ needs.version.outputs.semVer }}-win-x64.zip
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: ${{github.workspace}}\installer\
-
-  linux-release:
-    needs: [version, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: Zipped
-          path: ${{github.workspace}}/dnl
-          merge-multiple: true
-
-      - name: Zip artifact (Unix)
-        if: runner.os != 'Windows'
-        run: >-
-          zip SqlApiCli-${{ needs.version.outputs.semVer }}-linux-x64.zip
-          -j ${{github.workspace}}/dnl/linux-x64/*
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-installer
-          path: SqlApiCli-${{ needs.version.outputs.semVer }}-linux-x64.zip
-
   release:
-    needs: [version, windows-release, linux-release]
+    needs: [version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Download windows artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: windows-installer
-          path: ${{github.workspace}}/dnl
+          name: Zipped
+          path: ${{ env.ArtifactsDirectory }}
           merge-multiple: true
 
-      - name: Download linux artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-installer
-          path: ${{github.workspace}}/dnl
-          merge-multiple: true
-
+      # Create GitHub Release with all artifacts (ZIP + MSI)
+      # Files glob expanded to include both binary ZIPs and installer MSI
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.version.outputs.semVer }}
           name: v${{ needs.version.outputs.semVer }}
-          files: ${{github.workspace}}/dnl/*
+          files: artifacts/*
           generate_release_notes: true
