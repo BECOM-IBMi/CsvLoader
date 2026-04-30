@@ -105,13 +105,13 @@ jobs:
         run: |
           Get-ChildItem -Path ${{github.workspace}}\dnl -Recurse
 
-      - name: Show2
-        run: |
-          Get-ChildItem -Path ${{github.workspace}} -Recurse
-
       - name: Copy
         run: |
           cp -r ${{github.workspace}}\dnl\win-x64\* ${{github.workspace}}\artifacts
+
+      - name: Show2
+        run: |
+          Get-ChildItem -Path ${{github.workspace}} -Recurse
 
       - name: Install Advanced Installer
         uses: caphyon/advinst-github-action@main
