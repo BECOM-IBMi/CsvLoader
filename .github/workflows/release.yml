@@ -100,7 +100,7 @@ jobs:
 
       - name: Copy
         run: |
-          cp -r ${{github.workspace}}\dnl\win-x64\* ${{ env.ArtifactsDirectory }}\
+          cp -r ${{github.workspace}}\dnl\win-x64\* ${{github.workspace}}\artifacts
 
       - name: Install Advanced Installer
         uses: caphyon/advinst-github-action@main
@@ -115,7 +115,7 @@ jobs:
         if: runner.os == 'Windows'
         run: >-
           Compress-Archive
-          -Path ${{ env.ArtifactsDirectory }}\*
+          -Path ${{github.workspace}}\artifacts\*
           -DestinationPath ${{github.workspace}}\installer\SqlApiCli-${{ needs.version.outputs.semVer }}-win-x64.zip
 
       - name: Upload artifact
