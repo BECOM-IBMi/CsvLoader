@@ -83,6 +83,11 @@ jobs:
   windows-release:
     needs: [version, build]
     runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: pwsh
+
     permissions:
       contents: write
 
@@ -109,7 +114,7 @@ jobs:
           
       - name: Build MSI
         run: |
-          .\update_aip.gha.ps1 ${{ env.semVer }}
+          .\update_aip.gha.ps1 ${{ needs.version.outputs.semVer }}
       
       - name: Zip artifact (Windows)
         if: runner.os == 'Windows'
