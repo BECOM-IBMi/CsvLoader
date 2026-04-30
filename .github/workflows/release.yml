@@ -77,7 +77,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Zipped
+          name: Zipped-${{ matrix.rid }}
           path: ${{ env.ArtifactsDirectory }}
 
   windows-release:
@@ -90,7 +90,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Zipped
+          name: Zipped-win-x64
           path: ${{github.workspace}}\dnl
           merge-multiple: true
 
@@ -134,7 +134,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Zipped
+          name: Zipped-linux-x64
           path: ${{github.workspace}}/dnl
           merge-multiple: true
 
