@@ -96,7 +96,7 @@ jobs:
 
       - name: Show
         run: |
-          Get-ChildItem -Path ${{github.workspace}}\dnl\win-x64\*
+          Get-ChildItem -Path ${{github.workspace}}\dnl
 
       - name: Copy
         run: |
@@ -140,8 +140,8 @@ jobs:
 
       - name: Show
         run: |
-          ls -R ${{github.workspace}}/dnl/linux-x64/*
-          
+          ls -R ${{github.workspace}}/dnl
+
       - name: Zip artifact (Unix)
         if: runner.os != 'Windows'
         run: >-
