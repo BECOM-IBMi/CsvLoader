@@ -105,6 +105,10 @@ jobs:
         run: |
           Get-ChildItem -Path ${{github.workspace}}\dnl -Recurse
 
+      - name: Create artifacts directory
+        run: |
+          New-Item -ItemType Directory -Path ${{github.workspace}}\artifacts -Force
+
       - name: Copy
         run: |
           cp -r ${{github.workspace}}\dnl\win-x64\* ${{github.workspace}}\artifacts\
