@@ -94,6 +94,10 @@ jobs:
           path: ${{github.workspace}}\dnl
           merge-multiple: true
 
+      - name: Show
+        run: |
+          Get-ChildItem -Path ${{github.workspace}}\dnl\win-x64\*
+
       - name: Copy
         run: |
           cp -r ${{github.workspace}}\dnl\win-x64\* ${{ env.ArtifactsDirectory }}\
@@ -134,6 +138,10 @@ jobs:
           path: ${{github.workspace}}/dnl
           merge-multiple: true
 
+      - name: Show
+        run: |
+          ls -R ${{github.workspace}}/dnl/linux-x64/*
+          
       - name: Zip artifact (Unix)
         if: runner.os != 'Windows'
         run: >-
