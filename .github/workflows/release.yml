@@ -107,7 +107,7 @@ jobs:
 
       - name: Copy
         run: |
-          cp -r ${{github.workspace}}\dnl\win-x64\* ${{github.workspace}}\artifacts
+          cp -r ${{github.workspace}}\dnl\win-x64\* ${{github.workspace}}\artifacts\
 
       - name: Show2
         run: |
