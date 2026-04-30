@@ -101,7 +101,11 @@ jobs:
 
       - name: Show
         run: |
-          Get-ChildItem -Path ${{github.workspace}}\dnl
+          Get-ChildItem -Path ${{github.workspace}}\dnl -Recurse
+
+      - name: Show2
+        run: |
+          Get-ChildItem -Path ${{github.workspace}} -Recurse
 
       - name: Copy
         run: |
