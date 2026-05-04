@@ -20,6 +20,31 @@
 
 ## Learnings
 
+### 2026-07-17 — Directory.CreateDirectory() Required Before SetBasePath()
+
+**What was fixed:**
+- `Program.cs` line 27 — Added `Directory.CreateDirectory(userConfigDirectory)` before `SetBasePath(userConfigDirectory)` to prevent `DirectoryNotFoundException` on first run.
+
+**Root cause:**
+- `SetBasePath()` expects directory to exist; throws `DirectoryNotFoundException` if missing.
+- On first install, `~/.sqlapicli/` doesn't exist yet, causing immediate crash before config loading completes.
+
+**Key patterns:**
+- **Directory.CreateDirectory() is idempotent:** Safe to call even if directory exists; no-op if already present.
+- **Exception behavior:** `CreateDirectory` only throws on actual errors (permissions, disk full, path invalid); normal "already exists" is silent success.
+- **No suppression needed:** All real errors (permissions, disk full) should surface to user; we don't want to mask those.
+- **Placement:** Must be called BEFORE `SetBasePath()`, after path construction.
+
+**Testing:**
+- Manual test: Removed `~/.sqlapicli/`, ran app, directory auto-created empty (as expected).
+- All 61 unit tests pass; no regressions.
+- Config loading proceeds normally; empty directory is valid (AddJsonFile with `optional: true` handles missing file).
+
+**Impact:**
+- First-run experience now works correctly.
+- Subsequent runs unaffected (directory already exists).
+- User can manually place `appsettings.json` in `~/.sqlapicli/` for user-global settings.
+
 ### 2026-07-17 — User .sqlapicli Folder Configuration Layer
 
 **What was built:**

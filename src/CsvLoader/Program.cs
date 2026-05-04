@@ -23,6 +23,9 @@ var userConfigDirectory = Path.Combine(
 );
 var cwdDirectory = Directory.GetCurrentDirectory();
 
+// Ensure user config directory exists (SetBasePath requires it)
+Directory.CreateDirectory(userConfigDirectory);
+
 var configuration = new ConfigurationBuilder()
     // Layer 1: Exe directory (application defaults)
     .SetBasePath(appDirectory)
