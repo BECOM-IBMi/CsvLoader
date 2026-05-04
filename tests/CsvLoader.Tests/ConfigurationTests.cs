@@ -361,5 +361,147 @@ public sealed class ConfigurationTests : IDisposable
         config.GetValue<int>("CsvLoader:Timeout").ShouldBe(10);
         config["Logging:LogLevel:Default"].ShouldBe("Debug");
     }
+
+    // -----------------------------------------------------------------------
+    // .sqlapicli User Folder Tests — 3-Layer Config Cascade
+    // -----------------------------------------------------------------------
+
+    [Fact(DisplayName = ".sqlapicli alone loads successfully")]
+    public void SqlApiCliFolder_AloneLoads_Successfully()
+    {
+        var exeDir = CreateTempDir("_exe");
+        var userDir = CreateTempDir("_user");
+        var cwdDir = CreateTempDir("_cwd");
+
+        // Only .sqlapicli folder has config
+        File.WriteAllText(
+            Path.Combine(userDir, "appsettings.json"),
+            """{"CsvLoader":{"Endpoint":"https://user.example.com","Timeout":25}}"""
+        );
+
+        var config = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(exeDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(userDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(cwdDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .Build();
+
+        config["CsvLoader:Endpoint"].ShouldBe("https://user.example.com");
+        config.GetValue<int>("CsvLoader:Timeout").ShouldBe(25);
+    }
+
+    [Fact(DisplayName = ".sqlapicli + CWD precedence (CWD wins on conflicts)")]
+    public void SqlApiCliFolder_CwdOverride_CwdWins()
+    {
+        var exeDir = CreateTempDir("_exe");
+        var userDir = CreateTempDir("_user");
+        var cwdDir = CreateTempDir("_cwd");
+
+        // .sqlapicli: Timeout=25
+        File.WriteAllText(
+            Path.Combine(userDir, "appsettings.json"),
+            """{"CsvLoader":{"Timeout":25}}"""
+        );
+
+        // CWD: Timeout=5 (should override)
+        File.WriteAllText(
+            Path.Combine(cwdDir, "appsettings.json"),
+            """{"CsvLoader":{"Timeout":5}}"""
+        );
+
+        var config = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(exeDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(userDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(cwdDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .Build();
+
+        config.GetValue<int>("CsvLoader:Timeout").ShouldBe(5, "CWD overrides .sqlapicli on same key");
+    }
+
+    [Fact(DisplayName = ".sqlapicli + exe-dir precedence (.sqlapicli wins on conflicts)")]
+    public void SqlApiCliFolder_ExeDirFallback_SqlApiCliWins()
+    {
+        var exeDir = CreateTempDir("_exe");
+        var userDir = CreateTempDir("_user");
+        var cwdDir = CreateTempDir("_cwd");
+
+        // Exe-dir: Timeout=30
+        File.WriteAllText(
+            Path.Combine(exeDir, "appsettings.json"),
+            """{"CsvLoader":{"Timeout":30}}"""
+        );
+
+        // .sqlapicli: Timeout=25 (should override)
+        File.WriteAllText(
+            Path.Combine(userDir, "appsettings.json"),
+            """{"CsvLoader":{"Timeout":25}}"""
+        );
+
+        var config = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(exeDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(userDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(cwdDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .Build();
+
+        config.GetValue<int>("CsvLoader:Timeout").ShouldBe(25, ".sqlapicli overrides exe-dir on same key");
+    }
+
+    [Fact(DisplayName = "All three combined with correct full precedence")]
+    public void SqlApiCliFolder_AllThreeLayers_CorrectPrecedence()
+    {
+        var exeDir = CreateTempDir("_exe");
+        var userDir = CreateTempDir("_user");
+        var cwdDir = CreateTempDir("_cwd");
+
+        // Exe-dir: Endpoint + Timeout + Username
+        File.WriteAllText(
+            Path.Combine(exeDir, "appsettings.json"),
+            """
+            {
+              "CsvLoader": {
+                "Endpoint": "https://exe.example.com",
+                "Timeout": 30,
+                "Username": "exeuser"
+              }
+            }
+            """
+        );
+
+        // .sqlapicli: Timeout override + Password
+        File.WriteAllText(
+            Path.Combine(userDir, "appsettings.json"),
+            """
+            {
+              "CsvLoader": {
+                "Timeout": 25,
+                "Password": "userpass"
+              }
+            }
+            """
+        );
+
+        // CWD: Timeout override (highest priority)
+        File.WriteAllText(
+            Path.Combine(cwdDir, "appsettings.json"),
+            """
+            {
+              "CsvLoader": {
+                "Timeout": 5
+              }
+            }
+            """
+        );
+
+        var config = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(exeDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(userDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(cwdDir, "appsettings.json"), optional: true, reloadOnChange: false)
+            .Build();
+
+        // Verify correct precedence: exe-dir < .sqlapicli < CWD
+        config["CsvLoader:Endpoint"].ShouldBe("https://exe.example.com", "Endpoint only in exe-dir");
+        config["CsvLoader:Username"].ShouldBe("exeuser", "Username only in exe-dir");
+        config["CsvLoader:Password"].ShouldBe("userpass", "Password only in .sqlapicli");
+        config.GetValue<int>("CsvLoader:Timeout").ShouldBe(5, "CWD wins over .sqlapicli (25) and exe-dir (30)");
+    }
 }
 
