@@ -15,22 +15,30 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
     .CreateLogger();
 
-// Build configuration: exe-dir defaults < user-secrets < CWD override < CLI args
+// Build configuration: exe-dir < user .sqlapicli < user-secrets < CWD override < CLI args
 var appDirectory = AppContext.BaseDirectory;
+var userConfigDirectory = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    ".sqlapicli"
+);
 var cwdDirectory = Directory.GetCurrentDirectory();
 
 var configuration = new ConfigurationBuilder()
-    // Layer 1: Exe directory (defaults)
+    // Layer 1: Exe directory (application defaults)
     .SetBasePath(appDirectory)
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-    // Layer 2: User-secrets (mid-priority)
+    // Layer 2: User .sqlapicli folder (user-global settings)
+    .SetBasePath(userConfigDirectory)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+    // Layer 3: User-secrets (dev convenience)
     .AddUserSecrets<Program>(optional: true)
-    // Layer 3: Current Working Directory (project-local override, highest file precedence)
+    // Layer 4: Current Working Directory (project-local override, highest file precedence)
     .SetBasePath(cwdDirectory)
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     .Build();
 
-Log.Debug("Config loaded: exe={ExePath}, cwd={CwdPath}", appDirectory, cwdDirectory);
+Log.Debug("Config loaded: exe={ExePath}, user={UserPath}, cwd={CwdPath}", 
+    appDirectory, userConfigDirectory, cwdDirectory);
 
 // Stderr AnsiConsole for error rendering (never pollutes stdout)
 var errorConsole = AnsiConsole.Create(new AnsiConsoleSettings

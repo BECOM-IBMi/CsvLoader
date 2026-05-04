@@ -20,6 +20,30 @@
 
 ## Learnings
 
+### 2026-07-17 — User .sqlapicli Folder Configuration Layer
+
+**What was built:**
+- `Program.cs` — Added third configuration layer: user's `.sqlapicli` folder (`%USERPROFILE%\.sqlapicli\appsettings.json`) inserted between exe-dir and user-secrets. Updated debug log to show all three paths (exe, user, cwd).
+- `ConfigurationTests.cs` — Added 4 new unit tests validating .sqlapicli behavior: alone loads successfully, CWD precedence (CWD wins), exe-dir precedence (.sqlapicli wins), and full 3-layer precedence.
+
+**New config precedence (lowest to highest):**
+1. Exe directory (application defaults)
+2. User `.sqlapicli` folder (user-global settings)
+3. User-secrets (dev convenience)
+4. Current Working Directory (project-local override, highest file precedence)
+
+**Key patterns:**
+- **Path discovery:** `Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)` + `.sqlapicli` for cross-platform user folder resolution
+- **Optional folder:** `.sqlapicli` folder doesn't need to exist; `optional: true` on AddJsonFile handles gracefully
+- **Layer insertion:** New layer inserted between exe-dir and user-secrets without breaking existing config merge logic
+- **Backward compatible:** Existing configs work unchanged; `.sqlapicli` is pure additive feature
+
+**Testing:**
+- All 16 config tests pass (12 existing + 4 new)
+- All 61 non-integration tests pass
+- Feature fully backward compatible
+- No integration tests added (per constraint)
+
 ### 2026-07-17 — Multi-Location Configuration (ADR-013)
 
 **What was built:**
