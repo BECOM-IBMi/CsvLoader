@@ -20,6 +20,57 @@
 
 ## Learnings
 
+### 2025-01-21 — ReadyToRun Required for Acceptable CLI Startup Performance
+
+**What was diagnosed:**
+- User reported "app startup is slow after installation"
+- Measured baseline: **17.8s cold start** (Release build, first run), 270ms warm start, 72.4 MB binary
+- Debug build: 1.5s cold start, 500ms warm (faster because less optimization → less JIT work)
+
+**Root cause:**
+- `.csproj` has `PublishSingleFile=true` and `SelfContained=true` but **NO ReadyToRun**
+- Release builds use aggressive JIT optimization → all IL code compiled to native on first execution
+- Large dependency surface: Serilog, System.CommandLine, Spectre.Console, Microsoft.Extensions.Configuration, Becom.IBMi.SqlApiClient
+- 17.8s is 100% JIT compilation cost; warm runs (270ms) prove code execution is fast once compiled
+
+**Solution: ReadyToRun (R2R)**
+- Add `<PublishReadyToRun>true</PublishReadyToRun>` to `CsvLoader.csproj`
+- Ahead-of-time compilation at publish time: IL → native code bundled into single-file
+- Expected: 17.8s → 3-5s cold start (70-80% improvement)
+- Trade-off: Binary size grows 50-80% (72 MB → 110-130 MB), publish time +30-60s
+- Risk: LOW (R2R is production-grade, no code changes, backward compatible)
+
+**Why NOT trimming or lazy config:**
+- **Trimming:** Medium risk (reflection-heavy dependencies), marginal startup gain (~5-10%), deferred
+- **Lazy config:** 50-100ms gain vs. 17s baseline, not worth refactoring `Program.cs` / `RootCommandBuilder`
+
+**Key patterns:**
+- CLI tools MUST use ReadyToRun for self-contained single-file publish (startup is critical UX metric)
+- Measure before optimizing: Debug build was 1.5s (acceptable), Release build was 17.8s (unacceptable)
+- Warm vs. cold start delta isolates JIT cost: 17.8s - 270ms = 17.5s pure JIT overhead
+- R2R binary size growth acceptable for CLI tools (users tolerate larger downloads for instant startup)
+
+**Testing:**
+- Phase 1: Enable R2R, measure cold start (target <5s), verify all 61 unit tests pass
+- Phase 2: Manual smoke test (connection, query, CSV output)
+- Phase 3: Validate CI/CD pipeline adapts correctly, MSI builds successfully
+
+**Decision documented:** `.squad/decisions/inbox/han-startup-performance-fix.md`
+
+### 2026-07-17 — ReadyToRun Enabled in Release Publish Settings
+
+**What changed:**
+- `src/CsvLoader/CsvLoader.csproj` now sets `<PublishReadyToRun>true</PublishReadyToRun>` inside a Release-only `PropertyGroup`
+- Existing single-file + self-contained publish settings remain unchanged for other configurations
+
+**Why this pattern matters:**
+- Keep startup perf flags scoped to Release so Debug stays fast to iterate and publish-only optimizations stay explicit
+- For self-contained CLI binaries, ReadyToRun is the lowest-risk first fix when cold start is dominated by JIT
+
+**Verification notes:**
+- `dotnet test .\\CsvLoader.slnx --filter "Category!=Integration"` is already red in this workspace because WiX artifact tests expect `artifacts\\SqlApiCliInstaller.msi`
+- Project build remained the practical regression check for this change
+
 ### 2026-07-17 — Directory.CreateDirectory() Required Before SetBasePath()
 
 **What was fixed:**

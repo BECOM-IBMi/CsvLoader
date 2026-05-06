@@ -11,6 +11,10 @@
     <UserSecretsId>csvloader-8f2a1b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="CsvLoader.Tests" />
   </ItemGroup>
