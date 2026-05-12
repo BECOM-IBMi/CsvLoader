@@ -265,6 +265,151 @@
 - **Rationale**: Final QA sign-off; covers gaps xUnit cannot; runs on staging VMs pre-release
 - **Consequence**: Release gate includes PowerShell script execution on Windows 10, 11, Server 2022
 
+## Implementation Notes — Han
+
+### Config Directory Auto-Creation (2026-07-17)
+- **Status**: Implemented
+- **Problem**: On first install, `SetBasePath(~/.sqlapicli/)` threw DirectoryNotFoundException
+- **Solution**: Added `Directory.CreateDirectory(userConfigDirectory)` before SetBasePath
+- **Rationale**: SetBasePath contract requires directory to exist; CreateDirectory is idempotent
+- **Impact**: First-run experience fixed; no change for existing users
+
+### Init Command Query Validation (2026-07-17)
+- **Status**: Implemented
+- **Decision**: `--query` no longer required when `init` subcommand selected
+- **Why**: Root validator enforces `--query` only for root-level invocation; init is additive
+- **Impact**: `SqlApiCli init` works without `--query`; root behavior unchanged
+
+### Multi-Location Config Implementation (2026-07-17)
+- **Status**: Implemented
+- **Change**: Added CWD configuration layer after user-secrets
+- **Pattern**: SetBasePath scope per layer (exe-dir, user-secrets, CWD, CLI args)
+- **Testing**: All 12 ConfigurationTests.cs passing
+- **Backward Compat**: Fully backward compatible (CWD is optional)
+
+### Timeout Implementation (2026-07-16)
+- **Status**: Implemented
+- **What**: Added `--timeout` / `-t` CLI option (int?, optional)
+- **Precedence**: CLI arg > `CsvLoader:Timeout` config > 20 (default)
+- **Sync**: Both `EndpointConfiguration.Timeout` and `HttpClient.Timeout` set to resolved value
+- **Build**: `dotnet build` → 0 errors, 0 warnings
+
+### Password Prompt Implementation (2026-07-16)
+- **Status**: Implemented
+- **What**: `PasswordPrompter` static helper with Spectre.Console masked input
+- **Trigger**: Called in `QueryService.ExecuteAsync()` after config merge if password missing
+- **Non-Interactive**: Returns null in CI/piped environments (exit 2 path unchanged)
+- **Stderr**: Prompt routed to `_errorConsole` (stderr); stdout purity preserved
+
+### Startup Performance Fix (2026-01-21)
+- **Status**: Implemented
+- **Problem**: Cold start 17.8s (Release build, self-contained binary)
+- **Solution**: Added `<PublishReadyToRun>true</PublishReadyToRun>` to csproj
+- **Expected Impact**: Cold start 17.8s → 3–5s (70–80% improvement)
+- **Trade-off**: Binary size 72.4 MB → ~110–130 MB (acceptable for perf gain)
+- **Rationale**: ReadyToRun is production-grade .NET optimization; zero code changes
+
+---
+
+## Test Coverage Decisions — Leia
+
+### Init Command Tests (2026-05-12)
+- **Status**: Recorded
+- **Coverage**: 20 tests across all FRs 01–22
+- **Strategy**: Hybrid (CLI-surface test + spec-harness tests)
+- **Rationale**: Production `InitService` resolves global target from real home dir (would pollute test env)
+- **Tests Passing**: 20/20 init + 81/81 total
+
+### Configuration Test Suite (2026-07-17)
+- **Status**: Implemented
+- **Coverage**: 12 tests (6 main scenarios + 3 edge cases)
+- **Scenarios**: Backward compat, CWD override, partial merge, fallback, null handling, empty files
+- **Decision**: Unit-only; no integration tests (GitHub Actions lacks SQL endpoints per Michael)
+- **Tests Passing**: 12/12
+
+### Exit Code Refactoring (2026-04-16)
+- **Status**: Implemented
+- **Change**: Created `ValidationException` class (exit code 1, distinct from `ConnectionException`)
+- **Rationale**: Validation errors (missing values, invalid input) should fail BEFORE network I/O
+- **Impact**: 8 unit tests updated; all 73 tests passing
+- **Consequence**: Exit codes now 1:1 with error categories
+
+### Password Prompt Tests (2026-07-16)
+- **Status**: Recorded
+- **Coverage**: 6 tests (2 spec + 4 integration)
+- **Scenarios**: Non-interactive fallback, interactive prompt, config precedence
+- **NSubstitute Pattern**: Mock `IExclusivityMode.RunAsync` to call through (required for prompt simulation)
+- **Tests Passing**: 6/6 (within 41-test suite, all green)
+
+---
+
+## Code Reviews
+
+### Multi-Location Configuration Review (2026-07-17)
+- **Reviewer**: Luke (Lead)
+- **Verdict**: ❌ REJECTED (architectural deviation + missing README)
+- **Blocker 1**: Implementation used absolute paths instead of `.SetBasePath()` per design spec
+- **Blocker 2**: README not updated with CWD config documentation
+- **Remediation**: Han refactored to use SetBasePath; Wedge to update README
+- **Re-Review**: Approved after fixes
+
+### WiX Installer Phase 1 Review (2026-04-28)
+- **Reviewer**: Luke (Lead)
+- **Verdict**: ❌ REJECTED (critical binary naming mismatch)
+- **Blocker**: `CsvLoader.csproj` outputs `SqlApiCli.exe` but `Product.wxs` references `CsvLoader.exe`
+- **Impact**: MSI build fails → release workflow breaks
+- **Remediation**: Han to update Product.wxs line 78 to reference `SqlApiCli.exe`
+- **Positive**: Architecture solid, ADRs coherent, test coverage comprehensive
+
+---
+
+## PRD Decisions
+
+### Init Command PRD (2026-05-12)
+- **Status**: Proposed (awaiting Michael approval)
+- **Author**: Luke (Lead)
+- **Feature**: Subcommand `init` to scaffold `appsettings.json` interactively
+- **Scope**: Default target = CWD; `-g` target = `~/.sqlapicli/appsettings.json`
+- **Prompts**: endpoint → username → password → timeout
+- **Validation**: URL format, numeric timeout, non-empty strings
+- **Approval Gate**: Implementation deferred until Michael resolved all open questions
+
+### Init Command PRD Clarifications (2026-05-12)
+- **Captured from**: Michael Prattinger
+- **Q1 — Existing file**: Abort with error message (no merge)
+- **Q2 — Password masked**: Yes, use masked input
+- **Q3 — Endpoint validation**: Yes, validate as valid URL
+- **Q4 — Non-numeric timeout**: Re-prompt immediately on invalid
+- **Q5 — Global path**: Always `~/.sqlapicli/`, not configurable
+- **Q6 — Enter behavior**: Use displayed default (not empty string)
+- **Q7 — Preserve JSON sections**: N/A (command aborts if file exists)
+
+### WiX Installer PRD (2026-07-16)
+- **Status**: Proposed
+- **Author**: Luke (Lead)
+- **Why WiX**: Native MSI, upgrade semantics, open-source, scales to complexity
+- **Scope**: File install, registry (Add/Remove Programs), optional PATH, optional Start Menu shortcuts, silent install
+- **Out of Scope (v1.0)**: Custom EULA, multi-language, code signing, repair, per-user installation
+- **Installer Options Rejected**: NSIS (custom scripting), InnoSetup (not discoverable), bare EXE (unprofessional)
+
+---
+
+## User Directives
+
+### Pull Request Review Gate (2026-04-20)
+- **From**: Michael Prattinger
+- **What**: Do not merge feature branches directly; create a PR instead
+- **Why**: User wants to review before merge to main
+- **Scope**: All feature work going forward
+
+### No Integration Tests for Configuration (2026-05-04)
+- **From**: Michael Prattinger
+- **What**: Configuration discovery tests should be unit tests only
+- **Why**: GitHub Actions has no SQL endpoints available; integration tests would fail in CI
+- **Applies to**: ConfigurationTests.cs and any new tests for config discovery
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

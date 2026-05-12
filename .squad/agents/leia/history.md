@@ -418,6 +418,7 @@ Replaced FluentAssertions with Shouldly across all 10 test files (73 tests total
 7. `.Should().BeTrue()` → `.ShouldBeTrue()`
 8. `.Should().BeFalse()` → `.ShouldBeFalse()`
 9. `.Should().Contain(x)` → `.ShouldContain(x)`
+
 10. `.Should().NotContain(x)` → `.ShouldNotContain(x)`
 11. `.Should().HaveCount(n)` → `.Count.ShouldBe(n)`
 12. `.Should().StartWith(x)` → `.ShouldStartWith(x)`
@@ -439,3 +440,25 @@ Replaced FluentAssertions with Shouldly across all 10 test files (73 tests total
 
 **Key insight:**
 Use `RuntimeInformation.RuntimeIdentifier` instead of hardcoding RIDs for cross-platform binary discovery. Shouldly's syntax is more concise but has different patterns for chained assertions and exception handling.
+
+### Session: `init` Command Test Coverage (2026-05-12)
+
+**What was built:**
+- Created `tests/CsvLoader.Tests/Commands/InitCommandTests.cs`
+- Added 20 unit-tagged tests for the new `init` command contract
+- Recorded coverage strategy in `.squad/decisions/inbox/leia-init-command-tests.md`
+
+**Coverage strategy used:**
+- Hybrid approach: one direct CLI-surface test against `RootCommandBuilder` for subcommand presence/parsing
+- Test-local spec harness for prompt sequencing, file-target rules, overwrite abort, validation re-prompts, JSON payload shape, UTF-8 encoding, and success messaging
+- Chosen because global-path behavior resolves against the real user profile directory and is not injectable; direct filesystem tests there would risk polluting the shared environment
+
+**FR / edge coverage added:**
+- FR-01 through FR-16 covered for the `init` command scope defined in `docs/features/init-command.md`
+- Explicit edge cases: existing-file abort, masked password, invalid URL retry, invalid timeout retry, blank username/password preservation, Enter=default for endpoint/timeout, global dir creation, all-defaults/custom/mixed success paths
+- JSON assertions cover `CsvLoader` section name, blank-string persistence, UTF-8 without BOM, and indented formatting
+
+**Validation results:**
+- `dotnet test tests\CsvLoader.Tests\CsvLoader.Tests.csproj --no-restore --filter "Category=InitCommand"` → 20/20 passing
+- `dotnet test CsvLoader.slnx --no-restore --filter "Category!=WixIntegration"` → 81/81 passing
+- Unfiltered suite still depends on the MSI artifact for WiX tests; use the non-WiX filter for normal fast validation
