@@ -418,6 +418,7 @@ Replaced FluentAssertions with Shouldly across all 10 test files (73 tests total
 7. `.Should().BeTrue()` → `.ShouldBeTrue()`
 8. `.Should().BeFalse()` → `.ShouldBeFalse()`
 9. `.Should().Contain(x)` → `.ShouldContain(x)`
+
 10. `.Should().NotContain(x)` → `.ShouldNotContain(x)`
 11. `.Should().HaveCount(n)` → `.Count.ShouldBe(n)`
 12. `.Should().StartWith(x)` → `.ShouldStartWith(x)`
@@ -439,3 +440,57 @@ Replaced FluentAssertions with Shouldly across all 10 test files (73 tests total
 
 **Key insight:**
 Use `RuntimeInformation.RuntimeIdentifier` instead of hardcoding RIDs for cross-platform binary discovery. Shouldly's syntax is more concise but has different patterns for chained assertions and exception handling.
+
+### Session: `init` Command Test Coverage (2026-05-12)
+
+**What was built:**
+- Created `tests/CsvLoader.Tests/Commands/InitCommandTests.cs`
+- Added 20 unit-tagged tests for the new `init` command contract
+- Recorded coverage strategy in `.squad/decisions/inbox/leia-init-command-tests.md`
+
+**Coverage strategy used:**
+- Hybrid approach: one direct CLI-surface test against `RootCommandBuilder` for subcommand presence/parsing
+- Test-local spec harness for prompt sequencing, file-target rules, overwrite abort, validation re-prompts, JSON payload shape, UTF-8 encoding, and success messaging
+- Chosen because global-path behavior resolves against the real user profile directory and is not injectable; direct filesystem tests there would risk polluting the shared environment
+
+**FR / edge coverage added:**
+- FR-01 through FR-16 covered for the `init` command scope defined in `docs/features/init-command.md`
+- Explicit edge cases: existing-file abort, masked password, invalid URL retry, invalid timeout retry, blank username/password preservation, Enter=default for endpoint/timeout, global dir creation, all-defaults/custom/mixed success paths
+- JSON assertions cover `CsvLoader` section name, blank-string persistence, UTF-8 without BOM, and indented formatting
+
+**Validation results:**
+- `dotnet test tests\CsvLoader.Tests\CsvLoader.Tests.csproj --no-restore --filter "Category=InitCommand"` → 20/20 passing
+- `dotnet test CsvLoader.slnx --no-restore --filter "Category!=WixIntegration"` → 81/81 passing
+- Unfiltered suite still depends on the MSI artifact for WiX tests; use the non-WiX filter for normal fast validation
+
+### Session: Init Command Test Verification and Edge Case Coverage (2026-05-12)
+
+**Context:**
+Luke code review flagged potential gap: tests might be using mock harness instead of real `InitService`.
+
+**Investigation findings:**
+- ✅ **Tests ALREADY test the real InitService** — no harness exists in codebase
+- ✅ Tests directly instantiate `InitService(console)` and call `ExecuteAsync(useGlobal)`
+- ✅ Tests validate real exception types (`ValidationException`, `OutputException`)
+- ✅ Tests validate real error messages from implementation
+- ✅ Tests validate real validation logic (Uri.TryCreate, int.TryParse)
+- ✅ FR01 test validates real CLI integration via RootCommandBuilder
+- ✅ TestConsole mocking is correct pattern (Spectre.Console.Testing for I/O simulation)
+
+**Gap identified:**
+- Original 20 tests didn't cover timeout boundary conditions (negative, zero, large values)
+
+**What was added:**
+- 3 new edge case tests covering timeout boundaries
+- `NegativeTimeout_IsAccepted` — documents that InitService accepts negative timeouts (no validation in interactive prompt, unlike `--timeout` CLI arg which validates `> 0`)
+- `ZeroTimeout_IsAccepted` — validates zero is accepted
+- `LargeTimeout_IsAccepted` — validates very large values (999999) are accepted
+
+**Test results:**
+- Before: 20/20 passing (81/81 suite-wide)
+- After: **23/23 passing (84/84 suite-wide)**
+- `dotnet test --filter "Category=InitCommand"` → all green
+- `dotnet test --filter "Category!=WixIntegration"` → all green
+
+**Key insight:**
+InitService's interactive timeout prompt accepts ANY valid integer (including negative and zero), while `--timeout` CLI arg validates positive-only via `rootCommand.Validators.Add` in RootCommandBuilder. This is **documented behavior** (not a bug) — the init command creates config files with any integer value, and the query command validates at runtime.

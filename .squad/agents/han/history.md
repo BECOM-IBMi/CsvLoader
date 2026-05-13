@@ -207,6 +207,25 @@
 - Both `EndpointConfiguration.Timeout` and `HttpClient.Timeout` must be set consistently (library may reconfigure the client internally).
 - `-t` alias confirmed free (existing: `-q`, `-o`, `-n`, `-e`, `-u`, `-p`, `-v`).
 
+### 2026-05-12 — `init` command scaffolds config files interactively
+
+**What was built:**
+- Added `init` subcommand with optional `-g` / `--global` flag.
+- New `InitService` handles prompt flow, validation, JSON generation, and file writing.
+- `init` aborts when the target `appsettings.json` already exists.
+
+**Key patterns:**
+- Root `--query` requirement now lives in command validation so subcommands can run without breaking the existing root query flow.
+- Endpoint prompt uses Enter = default URL and re-prompts until `Uri.TryCreate(..., UriKind.Absolute, ...)` succeeds.
+- Timeout prompt uses Enter = default `20` and re-prompts until `int.TryParse` succeeds.
+- Password prompt uses Spectre secret input with `*` masking.
+- Global target path is fixed at `%USERPROFILE%\.sqlapicli\appsettings.json`.
+
+**Verification:**
+- `dotnet build .\CsvLoader.slnx --no-restore` succeeded.
+- `dotnet test .\CsvLoader.slnx --no-build --filter "Category!=WixIntegration"` passed.
+- Manual runs verified local creation, masked password entry, invalid endpoint/timeout re-prompting, existing-file abort, and global `-g` write path.
+
 ## Cross-Agent Updates
 
 ### From Luke (2026-07-16)
