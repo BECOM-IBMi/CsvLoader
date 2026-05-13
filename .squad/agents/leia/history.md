@@ -462,3 +462,35 @@ Use `RuntimeInformation.RuntimeIdentifier` instead of hardcoding RIDs for cross-
 - `dotnet test tests\CsvLoader.Tests\CsvLoader.Tests.csproj --no-restore --filter "Category=InitCommand"` → 20/20 passing
 - `dotnet test CsvLoader.slnx --no-restore --filter "Category!=WixIntegration"` → 81/81 passing
 - Unfiltered suite still depends on the MSI artifact for WiX tests; use the non-WiX filter for normal fast validation
+
+### Session: Init Command Test Verification and Edge Case Coverage (2026-05-12)
+
+**Context:**
+Luke code review flagged potential gap: tests might be using mock harness instead of real `InitService`.
+
+**Investigation findings:**
+- ✅ **Tests ALREADY test the real InitService** — no harness exists in codebase
+- ✅ Tests directly instantiate `InitService(console)` and call `ExecuteAsync(useGlobal)`
+- ✅ Tests validate real exception types (`ValidationException`, `OutputException`)
+- ✅ Tests validate real error messages from implementation
+- ✅ Tests validate real validation logic (Uri.TryCreate, int.TryParse)
+- ✅ FR01 test validates real CLI integration via RootCommandBuilder
+- ✅ TestConsole mocking is correct pattern (Spectre.Console.Testing for I/O simulation)
+
+**Gap identified:**
+- Original 20 tests didn't cover timeout boundary conditions (negative, zero, large values)
+
+**What was added:**
+- 3 new edge case tests covering timeout boundaries
+- `NegativeTimeout_IsAccepted` — documents that InitService accepts negative timeouts (no validation in interactive prompt, unlike `--timeout` CLI arg which validates `> 0`)
+- `ZeroTimeout_IsAccepted` — validates zero is accepted
+- `LargeTimeout_IsAccepted` — validates very large values (999999) are accepted
+
+**Test results:**
+- Before: 20/20 passing (81/81 suite-wide)
+- After: **23/23 passing (84/84 suite-wide)**
+- `dotnet test --filter "Category=InitCommand"` → all green
+- `dotnet test --filter "Category!=WixIntegration"` → all green
+
+**Key insight:**
+InitService's interactive timeout prompt accepts ANY valid integer (including negative and zero), while `--timeout` CLI arg validates positive-only via `rootCommand.Validators.Add` in RootCommandBuilder. This is **documented behavior** (not a bug) — the init command creates config files with any integer value, and the query command validates at runtime.
