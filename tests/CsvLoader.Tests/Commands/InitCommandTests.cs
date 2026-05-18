@@ -14,6 +14,7 @@ namespace CsvLoader.Tests;
 
 [Trait("Category", "UnitTest")]
 [Trait("Category", "InitCommand")]
+[Collection(CwdMutatingCollection.Name)]
 public sealed class InitCommandTests : IDisposable
 {
     private readonly string _scratchRoot;

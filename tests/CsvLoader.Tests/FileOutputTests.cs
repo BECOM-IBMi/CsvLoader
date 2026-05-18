@@ -8,6 +8,7 @@ namespace CsvLoader.Tests;
 /// Pure-logic tests run against ReferenceFileOutputService and pass immediately.
 /// Process-level integration tests are marked [Trait("Category", "Integration")].
 /// </summary>
+[Collection(CwdMutatingCollection.Name)]
 public sealed class FileOutputTests : IDisposable
 {
     private readonly IFileOutputService _service;
