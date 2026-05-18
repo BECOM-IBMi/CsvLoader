@@ -28,16 +28,13 @@ Directory.CreateDirectory(userConfigDirectory);
 
 var configuration = new ConfigurationBuilder()
     // Layer 1: Exe directory (application defaults)
-    .SetBasePath(appDirectory)
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+    .AddJsonFile(Path.Combine(appDirectory, "appsettings.json"), optional: true, reloadOnChange: false)
     // Layer 2: User .sqlapicli folder (user-global settings)
-    .SetBasePath(userConfigDirectory)
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+    .AddJsonFile(Path.Combine(userConfigDirectory, "appsettings.json"), optional: true, reloadOnChange: false)
     // Layer 3: User-secrets (dev convenience)
     .AddUserSecrets<Program>(optional: true)
     // Layer 4: Current Working Directory (project-local override, highest file precedence)
-    .SetBasePath(cwdDirectory)
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+    .AddJsonFile(Path.Combine(cwdDirectory, "appsettings.json"), optional: true, reloadOnChange: false)
     .Build();
 
 Log.Debug("Config loaded: exe={ExePath}, user={UserPath}, cwd={CwdPath}", 
